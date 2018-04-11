@@ -1,0 +1,10 @@
+@import "../../common/shared";
+
+.nav-bar {
+  padding: 1rem;
+  border-bottom: $border-style;
+
+  .header {
+    font-size: 1.5rem;
+  }
+}

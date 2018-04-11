@@ -1,0 +1,19 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch CLI",
+      "program": "${workspaceRoot}/src/cli/cli.ts",
+      "preLaunchTask": "debug",
+      "sourceMaps": true,
+      "outDir": "${workspaceRoot}/dist",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "runtimeArgs": [
+        "--trace-warnings"
+      ]
+    }
+  ]
+}

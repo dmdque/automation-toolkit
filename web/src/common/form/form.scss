@@ -1,0 +1,47 @@
+@import '../shared.scss';
+
+.form {
+  padding: 1rem;
+
+  label {
+    display: block;
+    font-weight: 400;
+    margin-bottom: .25rem;
+  }
+
+  .select-container, .text-input {
+    margin-bottom: 1rem;
+  }
+
+  .text-input {
+    input {
+      padding: .5rem;
+      font-size: .9rem;
+      width: 100%;
+      display: block;
+      box-sizing: border-box;
+    }
+  }
+
+  .button {
+    padding: 1rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      opacity: .8;
+    }
+
+    &.primary {
+      background-color: $primary;
+      color: white;
+    }
+
+    &:disabled {
+      background-color: #c3c3c3;
+      cursor: not-allowed;
+    }
+  }
+}

@@ -1,0 +1,45 @@
+@import "../../common/shared";
+
+.select-market {
+  width: 300px;
+  border-right: $border-style;
+
+  .header {
+    padding: 1rem;
+    font-size: 1.25rem;
+    border-bottom: $border-style;
+  }
+
+  .fa {
+    font-size: 1.5rem;
+    color: $primary;
+    cursor: pointer;
+
+    &:hover {
+      opacity: .8;
+    }
+  }
+
+  .market-list-item {
+    padding: 1rem;
+    border-bottom: $border-style;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+
+    &:hover {
+      background-color: #f3f3f3;
+    }
+
+    &.active {
+      background-color: #97ffb2;
+      color: white;
+    }
+  }
+
+  .market-list-item-label {
+    font-weight: 400;
+    font-size: 1.1rem;
+    margin-bottom: .25rem;
+  }
+}

@@ -1,0 +1,10 @@
+@import '../../common/shared';
+
+.market-view {
+  padding: 1rem;
+
+  h1 {
+    padding-bottom: 1rem;
+    border-bottom: $border-style;
+  }
+}

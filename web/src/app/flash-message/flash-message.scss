@@ -1,0 +1,35 @@
+.flash-message-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+
+  .flash-message-inner-container {
+    width: 320px;
+  }
+
+  .flash-message {
+    padding: 1rem;
+    position: relative;
+    
+    &.success {
+      background-color: #cefdff;
+    }
+
+    &.error {
+      background-color: #ffdcea;
+    }
+
+    .close {
+      width: 15px;
+      height: 20px;
+      position: absolute;
+      top: 1.15rem;
+      right: 1rem;
+      cursor: pointer;
+      background-image: url(/images/close.svg);
+      background-repeat: no-repeat;
+    }
+  }
+}
