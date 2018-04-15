@@ -29,8 +29,8 @@ export abstract class ApiService {
 
       req.end((error: any, response: any) => {
         if (error || !response.ok) {
-          if (response && response.body && response.body.error) {
-            reject(response.body.error);
+          if (response && response.body) {
+            reject(response.body);
             return;
           }
 

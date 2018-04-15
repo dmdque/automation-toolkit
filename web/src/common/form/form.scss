@@ -13,16 +13,6 @@
     margin-bottom: 1rem;
   }
 
-  .text-input {
-    input {
-      padding: .5rem;
-      font-size: .9rem;
-      width: 100%;
-      display: block;
-      box-sizing: border-box;
-    }
-  }
-
   .button {
     padding: 1rem;
     font-size: 1rem;
@@ -44,4 +34,25 @@
       cursor: not-allowed;
     }
   }
+}
+
+.text-input {
+  input {
+    padding: .5rem;
+    font-size: .9rem;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    outline: none;
+    border: $border-style;
+    
+    &:focus {
+      border: 1px solid #a4d1ff;
+    }
+  }
+}
+
+.error-message {
+  font-size: .7rem;
+  color: #f72222;
 }

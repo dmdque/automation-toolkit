@@ -29,6 +29,38 @@ body {
   margin: 0;
 }
 
+$stdPadding: 1rem;
+
+.h-padding {
+    padding-left: $stdPadding;
+    padding-right: $stdPadding;
+}
+
+.v-padding {
+    padding-top: $stdPadding;
+    padding-bottom: $stdPadding;
+}
+
+.t-padding { padding-top: $stdPadding; }
+.r-padding { padding-right: $stdPadding; }
+.b-padding { padding-bottom: $stdPadding; }
+.l-padding { padding-left: $stdPadding; }
+
+.h-margin {
+    margin-left: $stdPadding;
+    margin-right: $stdPadding;
+}
+
+.v-margin {
+    margin-top: $stdPadding;
+    margin-bottom: $stdPadding;
+}
+
+.t-margin { margin-top: $stdPadding; }
+.r-margin { margin-right: $stdPadding; }
+.b-margin { margin-bottom: $stdPadding; }
+.l-margin { margin-left: $stdPadding; }
+
 .fl {
   display: flex;
 }
@@ -84,4 +116,12 @@ body {
 h1 {
   margin: 0;
   font-weight: 100;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.lowercase {
+  text-transform: lowercase;
 }

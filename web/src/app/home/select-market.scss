@@ -21,7 +21,7 @@
   }
 
   .market-list-item {
-    padding: 1rem;
+    padding: .5rem 1rem;
     border-bottom: $border-style;
     cursor: pointer;
     text-decoration: none;
@@ -32,8 +32,8 @@
     }
 
     &.active {
-      background-color: #97ffb2;
-      color: white;
+      border-bottom: 2px solid $primary;
+      background-color: #f7f7f7;
     }
   }
 

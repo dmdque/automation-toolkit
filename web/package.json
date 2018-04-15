@@ -6,9 +6,11 @@
   "author": "ERC dEX",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --config=webpack.config.js --port=8663",
+    "start": "webpack-dev-server --config=webpack.config.js --port=8663 --mode=development",
     "build:prod": "webpack --config=webpack.config.prod.js",
-    "generate:client": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8662 --outputPath api/api.ts --namespace Dashboard"
+    "generate:clients": "yarn generate:client && yarn generate:aqueduct:remote",
+    "generate:client": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8662 --outputPath api/api.ts --namespace Dashboard",
+    "generate:aqueduct:remote": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8700 --outputPath api/aqueduct-remote.ts --namespace AqueductRemote"
   },
   "dependencies": {
     "@types/handlebars": "^4.0.37",
@@ -19,6 +21,7 @@
     "@types/react-router-dom": "^4.0.7",
     "@types/superagent": "^3.5.7",
     "@types/yargs": "^11.0.0",
+    "bignumber.js": "^6.0.0",
     "clean-webpack-plugin": "^0.1.16",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.7",

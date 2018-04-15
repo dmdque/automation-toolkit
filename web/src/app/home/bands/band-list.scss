@@ -1,0 +1,65 @@
+@import "../../../common/shared.scss";
+
+.band-list {
+  .band-list-title {
+    padding: .5rem 0 .25rem;
+  }
+
+  .text-input {
+    padding: .5rem .5rem .5rem 0;
+    flex: 1;
+
+    input {
+      font-size: .7rem;
+      padding: .25rem;
+      width: 100%;
+    }
+  }
+
+  .cell {
+    &:first-child {
+      .text-input {
+        padding-left: .5rem;
+      }
+    }
+  }
+
+  button[type='submit'] {
+    background-color: transparent;
+    border: none;
+    outline: none;
+  }
+
+  .fa-check {
+    font-size: 1rem;
+
+    &.disabled {
+      color: #b9b9b9;
+      cursor: not-allowed;
+    }
+
+    &.valid {
+      color: #30d208;
+      cursor: pointer;
+    }
+  }
+
+  .volume-bar-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    padding: 1px 0px;
+  }
+  
+  .volume-bar {
+    &.buy {
+      background-color: rgba(31, 141, 99, 0.10196078431372549);
+    }
+  
+    &.sell {
+      background-color: rgba(255, 95, 95, 0.10980392156862745);
+    }
+  }
+}

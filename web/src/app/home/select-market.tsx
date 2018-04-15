@@ -1,7 +1,7 @@
 import { Dashboard } from 'api/api';
 import { getPath } from 'common/paths';
 import { History } from 'history';
-import { observable } from 'mobx';
+import { autorun, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 import { NavLink, withRouter } from 'react-router-dom';
@@ -18,6 +18,13 @@ interface ISelectMarketProps {
 export class SelectMarket extends React.Component<ISelectMarketProps> {
   @observable private isCreatingMarket = false;
 
+  constructor(public readonly props: ISelectMarketProps) {
+    super(props);
+    autorun(() => {
+      this.isCreatingMarket = marketStore.markets.length === 0;
+    });
+  }
+
   public render() {
     const markets = marketStore.markets;
     return (
@@ -28,7 +35,7 @@ export class SelectMarket extends React.Component<ISelectMarketProps> {
         </div>
         <div className='market-list grow'>
           {!markets.length && <p className='ta-c'>---</p>}
-          {markets.length && markets.map(m => {
+          {markets.length > 0 && markets.map(m => {
             const path = getPath(p => p.home.market, { id: m._id });
             return (
               <NavLink key={m._id} to={path} className='market-list-item' activeClassName='active'>

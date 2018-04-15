@@ -1,0 +1,97 @@
+@import "../shared.scss";
+
+.scrollable-grid-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #fafafa;
+    border: $border-style;
+
+    ::-webkit-scrollbar {
+        width: 0px;  /* remove scrollbar space */
+        background: transparent;  /* optional: just make scrollbar invisible */
+    }
+
+    .align-end {
+      .body {
+          .row:first-child {
+              margin-top: auto !important;
+          }
+      }
+    }
+}
+
+.header {
+  .cell {
+      color: #565656;
+  }
+
+  .row {
+      border-bottom: $border-style;
+  }
+}
+
+.row {
+  .cell {
+    &:first-child {
+      padding-left: 1rem;
+    }
+  }
+}
+
+.is-selectable {
+  &:hover {
+      background-color:#ececec;
+  }
+}
+
+.scrollable-grid {
+    font-size: .85rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    &.body-margin {
+        .body {
+            margin-bottom: .5rem;
+        }
+    }
+
+    &.cell-padding {
+        .cell {
+            margin-right: 1rem;
+        }
+    }
+
+    .header {
+        margin-bottom: .5rem;
+
+        .cell {
+            text-transform: uppercase;
+            padding-bottom: .25rem;
+            padding-top: .5rem;
+        }
+    }
+
+    .body {
+        overflow-y: auto;
+        flex: 1;
+
+        .cell {
+          padding-top: .2rem;
+          padding-bottom: .2rem;
+        }
+    }
+
+    .row {
+        display: flex;
+        position: relative;
+
+        &.is-selectable {
+            cursor: pointer;
+        }
+    }
+
+    .cell {
+        padding: 0;
+    }
+}

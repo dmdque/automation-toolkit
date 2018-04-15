@@ -1,0 +1,30 @@
+@import "../../common/shared.scss";
+
+.token-reserve-input {
+  .title {
+    margin-bottom: .5rem;
+    display: flex !important;
+  }
+
+  .field {
+    flex: 1;
+    margin-right: 1rem;
+
+    label {
+      font-size: .85rem;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .balance-container {
+    font-size: .8rem;
+
+    .balance-label {
+      margin-right: .5rem;
+      color: $primary;
+    }
+  }
+}

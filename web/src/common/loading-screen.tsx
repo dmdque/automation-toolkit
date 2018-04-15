@@ -20,8 +20,10 @@ export const LoadingScreen = (props: ILoadingScreenProps) => {
 
   return (
     <div className={props.className} style={style}>
-      {!props.message && <img src='/images/oval.svg' style={{ height: props.imgHeight }} alt='Loading' />}
-      {props.message}
+      <div className='fl co'>
+        <img src='/images/oval.svg' style={{ height: props.imgHeight }} alt='Loading' />
+        {props.message && <div className='t-margin'>{props.message}</div>}
+      </div>
     </div>
   );
 };

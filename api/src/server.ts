@@ -7,6 +7,7 @@ import 'reflect-metadata';
 import * as ws from 'ws';
 import { tokenPairCache } from './cache/token-pair-cache';
 import { config } from './config';
+import './controllers/bands-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { RegisterRoutes } from './routes';
@@ -62,5 +63,15 @@ Aqueduct.Initialize({ apiKeyId });
       return console.log(err);
     }
     console.log(`Listening on port ${port}.`);
+  });
+
+  const onError = (err: Error) => {
+    console.error(err);
+    process.exit(1);
+  };
+
+  process.on('uncaughtException', onError);
+  process.on('unhandledRejection', err => {
+    console.log(err);
   });
 })();

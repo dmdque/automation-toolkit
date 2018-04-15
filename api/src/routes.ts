@@ -1,14 +1,40 @@
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+import { BandsController } from './controllers/bands-controller';
 import { MarketsController } from './controllers/markets-controller';
 import { TokenPairsController } from './controllers/token-pairs-controller';
 
 const models: TsoaRoute.Models = {
+  "IStoredBand": {
+    "properties": {
+      "marketId": { "dataType": "string", "required": true },
+      "ratio": { "dataType": "double", "required": true },
+      "spread": { "dataType": "double", "required": true },
+      "expirationSeconds": { "dataType": "double", "required": true },
+      "side": { "dataType": "string", "required": true },
+      "_id": { "dataType": "string", "required": true },
+    },
+  },
+  "IBand": {
+    "properties": {
+      "marketId": { "dataType": "string", "required": true },
+      "ratio": { "dataType": "double", "required": true },
+      "spread": { "dataType": "double", "required": true },
+      "expirationSeconds": { "dataType": "double", "required": true },
+      "side": { "dataType": "string", "required": true },
+    },
+  },
   "IStoredMarket": {
     "properties": {
       "label": { "dataType": "string", "required": true },
       "baseTokenSymbol": { "dataType": "string", "required": true },
+      "initialBaseAmount": { "dataType": "string", "required": true },
+      "minBaseAmount": { "dataType": "string", "required": true },
       "quoteTokenSymbol": { "dataType": "string", "required": true },
+      "initialQuoteAmount": { "dataType": "string", "required": true },
+      "minQuoteAmount": { "dataType": "string", "required": true },
+      "account": { "dataType": "string", "required": true },
+      "minEthAmount": { "dataType": "string", "required": true },
       "_id": { "dataType": "string", "required": true },
     },
   },
@@ -16,7 +42,13 @@ const models: TsoaRoute.Models = {
     "properties": {
       "label": { "dataType": "string", "required": true },
       "baseTokenSymbol": { "dataType": "string", "required": true },
+      "initialBaseAmount": { "dataType": "string", "required": true },
+      "minBaseAmount": { "dataType": "string", "required": true },
       "quoteTokenSymbol": { "dataType": "string", "required": true },
+      "initialQuoteAmount": { "dataType": "string", "required": true },
+      "minQuoteAmount": { "dataType": "string", "required": true },
+      "account": { "dataType": "string", "required": true },
+      "minEthAmount": { "dataType": "string", "required": true },
     },
   },
   "IToken": {
@@ -40,6 +72,44 @@ const models: TsoaRoute.Models = {
 };
 
 export function RegisterRoutes(app: any) {
+  app.get('/api/bands',
+    function(request: any, response: any, next: any) {
+      const args = {
+        marketId: { "in": "query", "name": "marketId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new BandsController();
+
+
+      const promise = controller.getBands.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/bands',
+    function(request: any, response: any, next: any) {
+      const args = {
+        request: { "in": "body", "name": "request", "required": true, "ref": "IBand" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new BandsController();
+
+
+      const promise = controller.createBand.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/api/markets',
     function(request: any, response: any, next: any) {
       const args = {

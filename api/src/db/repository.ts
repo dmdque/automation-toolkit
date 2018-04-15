@@ -1,8 +1,12 @@
 import * as Datastore from 'nedb';
 
-type ExtendedModel<T> = T & { _id: string; };
+export interface IStoredModel {
+  _id: string;
+}
 
-export abstract class Repository<T> {
+export type StoredModel<T> = IStoredModel & T;
+
+export abstract class Repository<T, S extends StoredModel<T>> {
   private readonly datastore: Datastore;
 
   constructor() {
@@ -13,8 +17,8 @@ export abstract class Repository<T> {
   }
 
   public async create(data: T) {
-    return new Promise<ExtendedModel<T>>((resolve, reject) => {
-      this.datastore.insert(data, (err, doc: ExtendedModel<T>) => {
+    return new Promise<S>((resolve, reject) => {
+      this.datastore.insert(data, (err, doc: S) => {
         if (err) { return reject(err); }
         resolve(doc);
       });
@@ -22,8 +26,8 @@ export abstract class Repository<T> {
   }
 
   public async find(data: Partial<T>) {
-    return new Promise<ExtendedModel<T>[]>((resolve, reject) => {
-      this.datastore.find(data, (err: Error, doc: ExtendedModel<T>[]) => {
+    return new Promise<S[]>((resolve, reject) => {
+      this.datastore.find(data, (err: Error, doc: S[]) => {
         if (err) { return reject(err); }
         resolve(doc);
       });
@@ -31,8 +35,8 @@ export abstract class Repository<T> {
   }
 
   public async findOne(data: Partial<T>) {
-    return new Promise<ExtendedModel<T> | undefined>((resolve, reject) => {
-      this.datastore.findOne(data, (err: Error, doc: ExtendedModel<T>) => {
+    return new Promise<S| undefined>((resolve, reject) => {
+      this.datastore.findOne(data, (err: Error, doc: S) => {
         if (err) { return reject(err); }
         resolve(doc ? doc : undefined);
       });

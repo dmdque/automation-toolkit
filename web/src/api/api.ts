@@ -13,17 +13,46 @@ export namespace Dashboard {
    */
   export namespace Api {
 
+    export interface IStoredBand {
+      marketId: string;
+      ratio: number;
+      spread: number;
+      expirationSeconds: number;
+      side: string;
+      _id: string;
+    }
+
+    export interface IBand {
+      marketId: string;
+      ratio: number;
+      spread: number;
+      expirationSeconds: number;
+      side: string;
+    }
+
     export interface IStoredMarket {
       label: string;
       baseTokenSymbol: string;
+      initialBaseAmount: string;
+      minBaseAmount: string;
       quoteTokenSymbol: string;
+      initialQuoteAmount: string;
+      minQuoteAmount: string;
+      account: string;
+      minEthAmount: string;
       _id: string;
     }
 
     export interface IMarket {
       label: string;
       baseTokenSymbol: string;
+      initialBaseAmount: string;
+      minBaseAmount: string;
       quoteTokenSymbol: string;
+      initialQuoteAmount: string;
+      minQuoteAmount: string;
+      account: string;
+      minEthAmount: string;
     }
 
     export interface IToken {
@@ -43,8 +72,40 @@ export namespace Dashboard {
     }
 
 
+    export interface IBandsGetParams {
+      marketId: string;
+    }
+
+    export interface IBandsCreateBandParams {
+      request: IBand;
+    }
+
     export interface IMarketsCreateParams {
       request: IMarket;
+    }
+    export class BandsService extends ApiService {
+
+      public async get(params: IBandsGetParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/bands`
+        };
+
+        requestParams.queryParameters = {
+          marketId: params.marketId,
+        };
+        return this.executeRequest<IStoredBand[]>(requestParams);
+      }
+
+      public async createBand(params: IBandsCreateBandParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/bands`
+        };
+
+        requestParams.body = params.request;
+        return this.executeRequest<IStoredBand>(requestParams);
+      }
     }
     export class MarketsService extends ApiService {
 

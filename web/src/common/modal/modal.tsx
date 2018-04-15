@@ -8,6 +8,14 @@ interface IModalProps {
 }
 
 export class Modal extends React.Component<IModalProps> {
+  public componentDidMount() {
+    document.addEventListener('keydown', this.onEscape);
+  }
+
+  public componentWillUnmount() {
+    document.removeEventListener('keydown', this.onEscape);
+  }
+
   public render() {
     return (
       <div className='modal-outer-container'>
@@ -20,5 +28,11 @@ export class Modal extends React.Component<IModalProps> {
         </div>
       </div>
     );
+  }
+
+  private readonly onEscape = (params: any) => {
+    if (params.keyCode === 27 && this.props.onClose) {
+      this.props.onClose();
+    }
   }
 }

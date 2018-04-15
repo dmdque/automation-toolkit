@@ -6,6 +6,8 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Redirect } from 'react-router';
 import { marketStore } from 'stores/market-store';
+import { tokenPairStore } from 'stores/token-pair-store';
+import { Bands } from './bands/bands';
 import './market-view.scss';
 
 interface IMarketViewProps {
@@ -38,9 +40,13 @@ export class MarketView extends React.Component<IMarketViewProps> {
       return <Redirect to={getPath(p => p.home)} />;
     }
 
+    const { baseTokenSymbol, quoteTokenSymbol } = this.market;
+    const tokenPair = tokenPairStore.getTokenPairsBySymbols({ baseTokenSymbol, quoteTokenSymbol });
+
     return (
-      <div className='market-view grow'>
+      <div className='market-view grow fl co'>
         <h1>{this.market.label}</h1>
+        <Bands tokenPair={tokenPair} marketId={this.market._id} />
       </div>
     );
   }
