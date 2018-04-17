@@ -1,0 +1,31 @@
+@import "../../../common/shared.scss";
+
+.log-viewer {
+  height: 600px;
+  width: 800px;
+  max-width: initial;
+
+  .message {
+    &.success {
+      color: #4ece24;
+    }
+  }
+}
+
+.log-list {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+
+  .control-bar {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: $border-style;
+
+    .refresh {
+      padding-right: 0;
+    }
+  }
+}
+
+

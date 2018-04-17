@@ -1,9 +1,38 @@
-import { Aqueduct } from 'aqueduct';
 import { Repository } from './repository';
 
-export interface IStoredOrder extends Aqueduct.Api.Order {
+export interface IOrder {
+  id: number;
+  dateCreated: Date;
+  dateUpdated: Date;
+  dateClosed: Date;
+  networkId: number;
+  exchangeContractAddress: string;
+  expirationUnixTimestampSec: number;
+  feeRecipient: string;
+  maker: string;
+  makerFee: string;
+  makerTokenAddress: string;
+  makerTokenAmount: string;
+  salt: string;
+  serializedEcSignature: string;
+  taker: string;
+  takerFee: string;
+  takerTokenAddress: string;
+  takerTokenAmount: string;
+  remainingTakerTokenAmount: string;
+  orderHash: string;
+  accountId?: number;
+  state: number;
+  source: string;
+  bandId: string;
+  bound: boolean;
+}
+
+export interface IStoredOrder extends IOrder {
   _id: string;
 }
 
-export class OrderRepository extends Repository<Aqueduct.Api.Order, IStoredOrder> {
+export class OrderRepository extends Repository<IOrder, IStoredOrder> {
 }
+
+export const orderRepository = new OrderRepository();

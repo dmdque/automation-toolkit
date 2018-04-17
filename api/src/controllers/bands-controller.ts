@@ -1,15 +1,13 @@
 import { Body, Get, Post, Query, Route, Tags } from 'tsoa';
-import { BandRepository, IBand, IStoredBand } from '../db/band-repository';
+import { bandRepository, IBand, IStoredBand } from '../db/band-repository';
 import { ServerError } from '../errors/server-error';
 
 @Route('bands')
 export class BandsController {
-  private readonly bandsRepository = new BandRepository();
-
   @Get()
   @Tags('Bands')
   public async getBands(@Query() marketId: string): Promise<IStoredBand[]> {
-    return await this.bandsRepository.find({ marketId });
+    return await bandRepository.find({ marketId });
   }
 
   @Post()
@@ -27,6 +25,6 @@ export class BandsController {
       throw new ServerError('expirationSeconds should be >= 600 (10 minutes)');
     }
 
-    return await this.bandsRepository.create(request);
+    return await bandRepository.create(request);
   }
 }

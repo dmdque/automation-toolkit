@@ -30,6 +30,14 @@ export namespace Dashboard {
       side: string;
     }
 
+    export interface IStoredLog {
+      dateCreated: Date;
+      message: string;
+      type: string;
+      severity: string;
+      _id: string;
+    }
+
     export interface IStoredMarket {
       label: string;
       baseTokenSymbol: string;
@@ -40,6 +48,7 @@ export namespace Dashboard {
       minQuoteAmount: string;
       account: string;
       minEthAmount: string;
+      active?: boolean;
       _id: string;
     }
 
@@ -53,6 +62,11 @@ export namespace Dashboard {
       minQuoteAmount: string;
       account: string;
       minEthAmount: string;
+      active?: boolean;
+    }
+
+    export interface IStopMarketRequest {
+      marketId: string;
     }
 
     export interface IToken {
@@ -80,8 +94,20 @@ export namespace Dashboard {
       request: IBand;
     }
 
+    export interface ILogsGetParams {
+      marketId: string;
+    }
+
     export interface IMarketsCreateParams {
       request: IMarket;
+    }
+
+    export interface IMarketsStartMarketParams {
+      id: string;
+    }
+
+    export interface IMarketsStopMarketParams {
+      request: IStopMarketRequest;
     }
     export class BandsService extends ApiService {
 
@@ -107,6 +133,16 @@ export namespace Dashboard {
         return this.executeRequest<IStoredBand>(requestParams);
       }
     }
+    export class LogsService extends ApiService {
+
+      public async get(params: ILogsGetParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/logs/${params.marketId}`
+        };
+        return this.executeRequest<IStoredLog[]>(requestParams);
+      }
+    }
     export class MarketsService extends ApiService {
 
       public async get() {
@@ -125,6 +161,24 @@ export namespace Dashboard {
 
         requestParams.body = params.request;
         return this.executeRequest<IStoredMarket>(requestParams);
+      }
+
+      public async startMarket(params: IMarketsStartMarketParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/markets/start/${params.id}`
+        };
+        return this.executeRequest<IStoredMarket>(requestParams);
+      }
+
+      public async stopMarket(params: IMarketsStopMarketParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/markets/stop`
+        };
+
+        requestParams.body = params.request;
+        return this.executeRequest<any>(requestParams);
       }
     }
     export class TokenPairsService extends ApiService {

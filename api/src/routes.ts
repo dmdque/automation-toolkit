@@ -1,6 +1,7 @@
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
 import { BandsController } from './controllers/bands-controller';
+import { LogsController } from './controllers/logs-controller';
 import { MarketsController } from './controllers/markets-controller';
 import { TokenPairsController } from './controllers/token-pairs-controller';
 
@@ -24,6 +25,15 @@ const models: TsoaRoute.Models = {
       "side": { "dataType": "string", "required": true },
     },
   },
+  "IStoredLog": {
+    "properties": {
+      "dateCreated": { "dataType": "datetime", "required": true },
+      "message": { "dataType": "string", "required": true },
+      "type": { "dataType": "string", "required": true },
+      "severity": { "dataType": "enum", "enums": ["critical", "error", "success", "info"], "required": true },
+      "_id": { "dataType": "string", "required": true },
+    },
+  },
   "IStoredMarket": {
     "properties": {
       "label": { "dataType": "string", "required": true },
@@ -35,6 +45,7 @@ const models: TsoaRoute.Models = {
       "minQuoteAmount": { "dataType": "string", "required": true },
       "account": { "dataType": "string", "required": true },
       "minEthAmount": { "dataType": "string", "required": true },
+      "active": { "dataType": "boolean" },
       "_id": { "dataType": "string", "required": true },
     },
   },
@@ -49,6 +60,12 @@ const models: TsoaRoute.Models = {
       "minQuoteAmount": { "dataType": "string", "required": true },
       "account": { "dataType": "string", "required": true },
       "minEthAmount": { "dataType": "string", "required": true },
+      "active": { "dataType": "boolean" },
+    },
+  },
+  "IStopMarketRequest": {
+    "properties": {
+      "marketId": { "dataType": "string", "required": true },
     },
   },
   "IToken": {
@@ -110,6 +127,25 @@ export function RegisterRoutes(app: any) {
       const promise = controller.createBand.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/api/logs/:marketId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        marketId: { "in": "path", "name": "marketId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new LogsController();
+
+
+      const promise = controller.getLogs.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/api/markets',
     function(request: any, response: any, next: any) {
       const args = {
@@ -145,6 +181,44 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.create.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/markets/start/:id',
+    function(request: any, response: any, next: any) {
+      const args = {
+        id: { "in": "path", "name": "id", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.startMarket.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/markets/stop',
+    function(request: any, response: any, next: any) {
+      const args = {
+        request: { "in": "body", "name": "request", "required": true, "ref": "IStopMarketRequest" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.stopMarket.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/api/token-pairs',

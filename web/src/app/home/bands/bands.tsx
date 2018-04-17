@@ -20,6 +20,12 @@ export class Bands extends React.Component<IBandsProps> {
     this.load();
   }
 
+  public componentDidUpdate(nextProps: IBandsProps) {
+    if (this.props.marketId !== nextProps.marketId) {
+      this.load();
+    }
+  }
+
   public render() {
     const bands = this.bands;
     if (!bands) {
@@ -43,6 +49,7 @@ export class Bands extends React.Component<IBandsProps> {
   }
 
   private load = async () => {
+    this.bands = undefined;
     this.bands = await new Dashboard.Api.BandsService().get({ marketId: this.props.marketId });
   }
 }

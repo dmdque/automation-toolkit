@@ -1,5 +1,5 @@
 /* tslint:disable */
-import { ApiService, IRequestParams } from 'swagger/api-service';
+import { ApiService, IRequestParams } from './api-service';
 
 export namespace AqueductRemote {
   let baseApiUrl: string;

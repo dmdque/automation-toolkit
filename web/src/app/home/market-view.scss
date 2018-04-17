@@ -3,9 +3,47 @@
 .market-view {
   padding: 1rem;
 
-  h1 {
+  .market-view-header {
     padding-bottom: .5rem;
     border-bottom: $border-style;
+  }
+
+  h1 {
     font-size: 1.5rem;
+    margin-right: 1rem;
+  }
+
+  .control {
+    padding: 0 1rem;
+    font-size: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: black;
+
+    .fa {
+      margin-right: .5rem;
+    }
+
+    &:hover {
+      opacity: .8;
+    }
+
+    &.inactive {
+      opacity: 1;
+      cursor: not-allowed;
+      color: #bbbbbb;
+    }
+
+    &.start {
+      &.active {
+        color: $primary;
+      }
+    }
+
+    &.stop {
+      &.active {
+        color: #9e0808;
+      }
+    }
   }
 }

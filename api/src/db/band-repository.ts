@@ -14,3 +14,5 @@ export interface IStoredBand extends IBand {
 
 export class BandRepository extends Repository<IBand, IStoredBand> {
 }
+
+export const bandRepository = new BandRepository();

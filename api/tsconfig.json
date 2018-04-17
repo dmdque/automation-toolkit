@@ -19,9 +19,7 @@
         "noImplicitThis": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
-        "removeComments": false
-    },
-    "include": [
-        "src/**/*.ts"
-    ]
+        "removeComments": false,
+        "typeRoots": ["node_modules/@0xproject/typescript-typings/types", "node_modules/@types"]
+    }
 }

@@ -26,6 +26,7 @@ export interface IMarket {
   minQuoteAmount: string;
   account: string;
   minEthAmount: string;
+  active?: boolean;
 }
 
 export interface IStoredMarket extends IMarket {
@@ -34,3 +35,5 @@ export interface IStoredMarket extends IMarket {
 
 export class MarketRepository extends Repository<IMarket, IStoredMarket> {
 }
+
+export const marketRepository = new MarketRepository();

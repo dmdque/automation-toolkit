@@ -3,8 +3,8 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch CLI",
-      "program": "${workspaceRoot}/src/cli/cli.ts",
+      "name": "Launch API",
+      "program": "${workspaceRoot}/src/server.ts",
       "preLaunchTask": "debug",
       "sourceMaps": true,
       "outDir": "${workspaceRoot}/dist",

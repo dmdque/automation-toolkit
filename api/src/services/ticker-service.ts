@@ -7,8 +7,13 @@ export class TickerService {
   private tickerData: Promise<Aqueduct.Api.ITokenTicker[]>;
   private callbacks = new Array<TickerCallback>();
 
-  constructor() {
-    this.start();
+  public async start() {
+    this.tickerData = new Aqueduct.Api.ReportsService().getTickerData();
+
+    new Aqueduct.Events.TickerSubscription().subscribe({}, data => {
+      this.tickerData = Promise.resolve(data.tickers);
+      this.callbacks.forEach(cb => cb());
+    });
   }
 
   public async getPrice(token: Aqueduct.Api.IToken) {
@@ -29,13 +34,6 @@ export class TickerService {
 
     return new BigNumber(tokenTickerData.priceEth);
   }
-
-  private async start() {
-    this.tickerData = new Aqueduct.Api.ReportsService().getTickerData();
-
-    new Aqueduct.Events.TickerSubscription().subscribe({}, data => {
-      this.tickerData = Promise.resolve(data.tickers);
-      this.callbacks.forEach(cb => cb());
-    });
-  }
 }
+
+export const tickerService = new TickerService();

@@ -8,16 +8,19 @@ import * as ws from 'ws';
 import { tokenPairCache } from './cache/token-pair-cache';
 import { config } from './config';
 import './controllers/bands-controller';
+import './controllers/logs-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { RegisterRoutes } from './routes';
+import { tickerService } from './services/ticker-service';
+import { AqueductRemote } from './swagger/aqueduct-remote';
+import { Worker } from './worker/worker';
 
 (global as any).WebSocket = ws;
 
-const apiKeyId = process.env['AQUEDUCT_API_KEY_ID'];
-if (!apiKeyId) { throw new Error(`api key id required`); }
-
-Aqueduct.Initialize({ apiKeyId });
+Aqueduct.Initialize();
+AqueductRemote.Initialize({ host: 'localhost:8700' });
+new Worker().start();
 
 (async () => {
   const app = express();
@@ -27,6 +30,7 @@ Aqueduct.Initialize({ apiKeyId });
   app.use(methodOverride());
 
   await tokenPairCache.getTokenPairs(config.networkId);
+  await tickerService.start();
 
   app.use('/swagger.json', (_req, res) => {
     res.sendFile(__dirname + '/swagger.json');
@@ -67,7 +71,6 @@ Aqueduct.Initialize({ apiKeyId });
 
   const onError = (err: Error) => {
     console.error(err);
-    process.exit(1);
   };
 
   process.on('uncaughtException', onError);
