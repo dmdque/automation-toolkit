@@ -4,3 +4,4 @@
 **/*.db
 parity-data
 data
+.env
