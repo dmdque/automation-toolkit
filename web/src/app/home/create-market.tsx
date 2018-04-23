@@ -122,6 +122,7 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     try {
       const baseRes = this.baseReserve;
       const quoteRes = this.quoteReserve;
+      const minEthAmount = this.minEthBalanceError().value as BigNumber;
 
       const market = await new Dashboard.Api.MarketsService().create({
         request: {
@@ -133,7 +134,7 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
           initialBaseAmount: baseRes.initial,
           minQuoteAmount: quoteRes.min,
           initialQuoteAmount: quoteRes.initial,
-          minEthAmount: ''
+          minEthAmount: minEthAmount.toString()
         }
       });
       this.props.onSuccess(market);
@@ -141,13 +142,13 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     } catch (err) {
       flashMessageStore.addMessage({
         type: 'error',
-        content: 'There was an error creating the market; please check your submission and try again.'
+        content: err.message || 'There was an error creating the market; please check your submission and try again.'
       });
     }
   }
 
   private isValid() {
-    return !!(this.label && this.selectedTokenPair && this.selectedAccount && this.baseReserve && this.quoteReserve && this.minEthBalanceError().valid);
+    return !!(this.label && this.selectedTokenPair && this.selectedAccount && this.baseReserve && this.quoteReserve && this.minEthBalanceError().value);
   }
 
   private async loadBalances(tokenPair: Dashboard.Api.ITokenPair, account: string) {
@@ -160,15 +161,15 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     this.balances = { baseBalance, quoteBalance, ethBalance };
   }
 
-  private minEthBalanceError(): { empty?: boolean; error?: string; valid?: boolean; } {
+  private minEthBalanceError(): { empty?: boolean; error?: string; value?: BigNumber; } {
     if (!this.minEthBalance) { return { empty: true }; }
     if (!isValidFloat(this.minEthBalance)) { return { error: 'Please enter a valid number' }; }
 
-    const bn = toBaseUnitAmount({ token: { decimals: 18 }, value: this.minEthBalance });
-    if (bn.isGreaterThanOrEqualTo((this.balances as IBalances).ethBalance)) {
+    const value = toBaseUnitAmount({ token: { decimals: 18 }, value: this.minEthBalance });
+    if (value.isGreaterThanOrEqualTo((this.balances as IBalances).ethBalance)) {
       return { error: 'Insufficient balance' };
     }
 
-    return { valid: true };
+    return { value };
   }
 }

@@ -9,8 +9,8 @@ import * as React from 'react';
 import './log-viewer.scss';
 
 interface ILogViewerProps {
-  marketId: string;
   onClose: () => void;
+  logsFn: () => Promise<Dashboard.Api.IStoredLog[]>;
 }
 
 @observer
@@ -54,7 +54,7 @@ export class LogViewer extends React.Component<ILogViewerProps> {
 
     return (
       <div className='log-list'>
-        <div className='fl fe control-bar'>
+        <div className='control-bar'>
           <div className='control refresh' onClick={this.load}>
             <i className='fa fa-refresh' />
             <span>Refresh</span>
@@ -68,8 +68,6 @@ export class LogViewer extends React.Component<ILogViewerProps> {
 
   private readonly load = async () => {
     this.logs = undefined;
-    this.logs = await new Dashboard.Api.LogsService().get({
-      marketId: this.props.marketId
-    });
+    this.logs = await this.props.logsFn();
   }
 }

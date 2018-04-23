@@ -87,7 +87,7 @@ export abstract class Repository<T, S extends StoredModel<T>> {
     });
   }
 
-  public async delete(query: Partial<T>) {
+  public async delete(query: Partial<S>) {
     return new Promise<number>((resolve, reject) => {
       this.datastore.remove(query, (err: Error, numDeleted) => {
         if (err) { return reject(err); }

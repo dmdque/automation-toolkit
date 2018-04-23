@@ -3,7 +3,7 @@ import { Repository } from './repository';
 export interface IBand {
   marketId: string;
   ratio: number;
-  spread: number;
+  spreadBps: number;
   expirationSeconds: number;
   side: string;
 }

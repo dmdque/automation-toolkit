@@ -1,0 +1,16 @@
+{
+  "swagger": {
+      "outputDirectory": "./dist",
+      "entryFile": "./src/server.ts",
+      "basePath": "/api",
+      "name": "Market Maker Dashboard API"
+  },
+  "routes": {
+      "basePath": "/api",
+      "entryFile": "./src/server.ts",
+      "routesDir": "./src"
+  },
+  "ignore": [
+    "**/node_modules/**"
+  ]
+}

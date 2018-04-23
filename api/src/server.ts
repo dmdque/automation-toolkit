@@ -1,10 +1,11 @@
 import { Aqueduct } from 'aqueduct';
 import * as bodyParser from 'body-parser';
 import * as express from 'express';
+// tslint:disable-next-line
+const webSocket = require('html5-websocket');
 import * as http from 'http';
 import * as methodOverride from 'method-override';
 import 'reflect-metadata';
-import * as ws from 'ws';
 import { tokenPairCache } from './cache/token-pair-cache';
 import { config } from './config';
 import './controllers/bands-controller';
@@ -12,17 +13,20 @@ import './controllers/logs-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { RegisterRoutes } from './routes';
-import { tickerService } from './services/ticker-service';
 import { AqueductRemote } from './swagger/aqueduct-remote';
+import { waitForAqueductRemote } from './wait-for-aqueduct-remote';
 import { Worker } from './worker/worker';
 
-(global as any).WebSocket = ws;
+(global as any).WebSocket = webSocket;
 
 Aqueduct.Initialize();
-AqueductRemote.Initialize({ host: 'localhost:8700' });
-new Worker().start();
+AqueductRemote.Initialize({ host: 'aqueduct-remote:8700' });
 
 (async () => {
+  await waitForAqueductRemote();
+  config.networkId = await new AqueductRemote.Api.WalletService().getNetworkId();
+  new Worker().start();
+
   const app = express();
   const server = http.createServer(app);
   app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,7 +34,6 @@ new Worker().start();
   app.use(methodOverride());
 
   await tokenPairCache.getTokenPairs(config.networkId);
-  await tickerService.start();
 
   app.use('/swagger.json', (_req, res) => {
     res.sendFile(__dirname + '/swagger.json');
@@ -38,6 +41,7 @@ new Worker().start();
 
   app.use((_req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
   });

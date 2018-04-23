@@ -59,6 +59,10 @@ export namespace AqueductRemote {
       request: ILimitOrderRequest;
     }
 
+    export interface ITradingCancelOrderParams {
+      orderHash: string;
+    }
+
     export interface IWalletGetBalanceParams {
       tokenAddress: string;
       account: string;
@@ -77,6 +81,14 @@ export namespace AqueductRemote {
 
         requestParams.body = params.request;
         return this.executeRequest<IOrder>(requestParams);
+      }
+
+      public async cancelOrder(params: ITradingCancelOrderParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/trading/cancel_order/${params.orderHash}`
+        };
+        return this.executeRequest<string>(requestParams);
       }
     }
     export class WalletService extends ApiService {
@@ -120,6 +132,14 @@ export namespace AqueductRemote {
           url: `${baseApiUrl}/api/wallet/node_health`
         };
         return this.executeRequest<INodeHealth>(requestParams);
+      }
+
+      public async getNetworkId() {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/wallet/network_id`
+        };
+        return this.executeRequest<number>(requestParams);
       }
     }
   }

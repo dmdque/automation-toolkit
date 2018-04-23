@@ -1,0 +1,35 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "cli": "ts-node src/cli/cli.ts",
+    "debug": "tsc && source ~/.bash_profile",
+    "build": "yarn swagger:gen && yarn routes:gen && tsc",
+    "start:server": "yarn build && nodemon ./dist/server.js",
+    "swagger:gen": "tsoa swagger",
+    "routes:gen": "tsoa routes"
+  },
+  "dependencies": {
+    "0x.js": "^0.36.0",
+    "@0xproject/typescript-typings": "^0.1.0",
+    "@types/body-parser": "^1.16.8",
+    "@types/express": "^4.11.1",
+    "@types/method-override": "^0.0.31",
+    "@types/node": "^9.6.4",
+    "@types/request-promise": "^4.1.41",
+    "@types/request-promise-native": "^1.0.14",
+    "aqueduct": "^1.1.19",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "html5-websocket": "^2.0.2",
+    "method-override": "^2.3.10",
+    "nodemon": "^1.17.3",
+    "reflect-metadata": "^0.1.12",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
+    "ts-node": "^5.0.1",
+    "tslint": "^5.9.1",
+    "tsoa": "^2.1.4",
+    "typescript": "^2.8.1",
+    "web3": "0.20.0"
+  }
+}

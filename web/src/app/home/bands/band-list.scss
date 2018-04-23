@@ -24,6 +24,13 @@
     }
   }
 
+  .row {
+    .link {
+      z-index: 1;
+      margin-left: .5rem;
+    }
+  }
+
   button[type='submit'] {
     background-color: transparent;
     border: none;

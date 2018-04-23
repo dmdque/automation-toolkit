@@ -1,3 +1,7 @@
-export const config = {
-  networkId: 42
+export interface IConfig {
+  networkId: number;
+}
+
+export const config: IConfig = {
+  networkId: undefined as any
 };

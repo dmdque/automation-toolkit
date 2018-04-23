@@ -5,11 +5,11 @@ import { tokenPairCache } from '../cache/token-pair-cache';
 import { config } from '../config';
 import { bandRepository, IStoredBand } from '../db/band-repository';
 import { IStoredMarket, marketRepository } from '../db/market-repository';
-import { orderRepository } from '../db/order-repository';
+import { IStoredOrder, orderRepository } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
+import { DefaultPriceFeed } from './default-price-feed';
 import { LogService } from './log-service';
-import { tickerService } from './ticker-service';
 
 interface IGetLimitOrderQuantityParams {
   side: 'buy' | 'sell';
@@ -18,26 +18,52 @@ interface IGetLimitOrderQuantityParams {
   market: IStoredMarket;
 }
 
+export interface IValidateRemoveResult {
+  hasActiveOrders: boolean;
+}
+
+export interface IRemoveBandRequest {
+  bandId: string;
+  immediateCancelation: boolean;
+}
+
 export class BandService {
   private readonly logService = new LogService();
 
   public async start(band: IStoredBand) {
-    await this.logService.addBandLog({ bandId: band._id, message: `starting band ${band._id}`, severity: 'info' });
+    const market = await marketRepository.findOne({ _id: band.marketId });
+    if (!market) {
+      throw new ServerError(`market ${band.marketId} doesn't exist`, 404);
+    }
+
+    const unbindOrders = async (orders: IStoredOrder[]) => {
+      for (let i = 0; i < orders.length; i++) {
+        const order = orders[i];
+        order.bound = false;
+        await orderRepository.update({ _id: order._id }, order);
+      }
+    };
 
     // is there already an order bound?
-    let existingOrder = await orderRepository.findOne({ bandId: band._id, bound: true });
-    if (existingOrder) {
+    let existingOrders = await orderRepository.find({ bandId: band._id, bound: true });
+    if (existingOrders && existingOrders.length > 0) {
+      if (!market.active) {
+        await unbindOrders(existingOrders);
+        return;
+      }
+
       let isValid = true;
       // is it actually still valid?
+      const existingOrder = existingOrders[0];
       if (existingOrder.expirationUnixTimestampSec <= (new Date().getTime() / 1000)) {
         // expired
         existingOrder.bound = false;
-        await orderRepository.update({ _id: existingOrder._id}, existingOrder);
+        await orderRepository.update({ _id: existingOrder._id }, existingOrder);
         isValid = false;
 
         await this.logService.addBandLog({
           bandId: band._id,
-          message: `order ${existingOrder.id} expired - removing, refreshing band`,
+          message: `order ${existingOrder.id} expired - removing, will refresh band`,
           severity: 'error'
         });
       }
@@ -46,24 +72,17 @@ export class BandService {
       const remoteOrder = await new Aqueduct.Api.OrdersService().getById({ orderId: existingOrder.id });
       if (remoteOrder.state !== 0) {
         existingOrder.bound = false;
-        await orderRepository.update({ _id: existingOrder._id}, existingOrder);
+        await orderRepository.update({ _id: existingOrder._id }, existingOrder);
         isValid = false;
 
         await this.logService.addBandLog({
           bandId: band._id,
-          message: `order ${existingOrder.id} invalid with state ${remoteOrder.state} - removing, refreshing band`,
+          message: `order ${existingOrder.id} invalid with state ${remoteOrder.state} - removing, will refresh band`,
           severity: 'error'
         });
       }
 
-      if (isValid) {
-        return;
-      }
-    }
-
-    const market = await marketRepository.findOne({ _id: band.marketId });
-    if (!market) {
-      throw new ServerError(`market ${band.marketId} doesn't exist`, 404);
+      if (isValid) { return; }
     }
 
     if (!market.active) {
@@ -77,8 +96,8 @@ export class BandService {
       networkId: config.networkId
     });
 
-    const price = await tickerService.getPrice(tokenPair.tokenA);
-    const absoluteSpread = price.times(band.spread.toString());
+    const price = await new DefaultPriceFeed().getPrice(baseTokenSymbol, quoteTokenSymbol);
+    const absoluteSpread = price.times(band.spreadBps.toString()).times(.0001);
     const adjustedPrice = band.side === 'buy' ? price.minus(absoluteSpread) : price.add(absoluteSpread);
     const allBands = await bandRepository.find({ marketId: market._id, side: band.side });
     const totalRatioQuantity = allBands.map(b => b.ratio).reduce((a, b) => a + b);
@@ -129,8 +148,63 @@ export class BandService {
     }
   }
 
-  public async stop(_band: IStoredBand) {
-    return;
+  public async stop(band: IStoredBand, immediateCancelation: boolean) {
+    const existingOrders = await orderRepository.find({ bandId: band._id, bound: true });
+    if (existingOrders && existingOrders.length > 0) {
+      for (let i = 0; i < existingOrders.length; i++) {
+        const order = existingOrders[i];
+        if (immediateCancelation) {
+          try {
+            const txHash = await new AqueductRemote.Api.TradingService().cancelOrder({ orderHash: order.orderHash });
+            this.logService.addBandLog({
+              severity: 'info',
+              bandId: band._id,
+              message: `band ${band._id} canceled order ${order.id} w/ tx ${txHash}`
+            });
+          } catch (err) {
+            this.logService.addBandLog({
+              severity: 'critical',
+              bandId: band._id,
+              message: `band ${band._id} failed to cancel order ${order.id}: ${err.message}`
+            });
+          }
+        }
+
+        order.bound = false;
+        await orderRepository.update({ id: order.id }, order);
+      }
+    }
+
+    this.logService.addBandLog({
+      severity: 'success',
+      bandId: band._id,
+      message: `band ${band._id} stopped`
+    });
+  }
+
+  public async validateRemove(bandId: string): Promise<IValidateRemoveResult> {
+    const order = await orderRepository.findOne({ bandId, bound: true });
+    return {
+      hasActiveOrders: !!order
+    };
+  }
+
+  public async remove({ bandId, immediateCancelation }: IRemoveBandRequest) {
+    const band = await bandRepository.findOne({ _id: bandId });
+    if (!band) {
+      throw new ServerError(`no band ${bandId} found`, 404);
+    }
+
+    if (immediateCancelation) {
+      await this.stop(band, true);
+    }
+
+    await bandRepository.delete({ _id: band._id });
+    this.logService.addMarketLog({
+      severity: 'success',
+      marketId: band.marketId,
+      message: `band ${bandId} removed from market`
+    });
   }
 
   private async getAvailableBalance({ side, account, tokenPair, market }: IGetLimitOrderQuantityParams) {

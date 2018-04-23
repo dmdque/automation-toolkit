@@ -36,13 +36,13 @@ export class Bands extends React.Component<IBandsProps> {
       <div className='bands fl co grow'>
         {['sell', 'buy'].map((s: 'buy' | 'sell') => {
           const sideBands = bands.filter(b => b.side === s).sort((a, b) => {
-            if (a.spread < b.spread) { return -1; }
-            if (a.spread > b.spread) { return 1; }
+            if (a.spreadBps < b.spreadBps) { return -1; }
+            if (a.spreadBps > b.spreadBps) { return 1; }
             return 0;
           });
 
           return <BandList key={s} tokenPair={this.props.tokenPair} side={s} bands={s === 'buy' ? sideBands : sideBands.reverse()}
-            onCreate={this.load} marketId={this.props.marketId} />;
+            onCreate={this.load} marketId={this.props.marketId} onRemove={this.load} />;
         })}
       </div>
     );

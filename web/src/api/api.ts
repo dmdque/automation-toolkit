@@ -16,7 +16,7 @@ export namespace Dashboard {
     export interface IStoredBand {
       marketId: string;
       ratio: number;
-      spread: number;
+      spreadBps: number;
       expirationSeconds: number;
       side: string;
       _id: string;
@@ -25,9 +25,18 @@ export namespace Dashboard {
     export interface IBand {
       marketId: string;
       ratio: number;
-      spread: number;
+      spreadBps: number;
       expirationSeconds: number;
       side: string;
+    }
+
+    export interface IValidateRemoveResult {
+      hasActiveOrders: boolean;
+    }
+
+    export interface IRemoveBandRequest {
+      bandId: string;
+      immediateCancelation: boolean;
     }
 
     export interface IStoredLog {
@@ -65,7 +74,36 @@ export namespace Dashboard {
       active?: boolean;
     }
 
+    export interface IValidateStopResult {
+      hasActiveBands: boolean;
+    }
+
     export interface IStopMarketRequest {
+      marketId: string;
+      immediateCancelation: boolean;
+    }
+
+    export interface IMarketStats {
+      baseBalance: string;
+      baseUsdBalance: string;
+      quoteBalance: string;
+      quoteUsdBalance: string;
+      ethBalance: string;
+      ethUsdBalance: string;
+      openBaseAmount: string;
+      openQuoteAmount: string;
+    }
+
+    export interface IMarketStatsHistory {
+      baseBalance: string;
+      baseUsdBalance: string;
+      quoteBalance: string;
+      quoteUsdBalance: string;
+      ethBalance: string;
+      ethUsdBalance: string;
+      openBaseAmount: string;
+      openQuoteAmount: string;
+      dateCreated: Date;
       marketId: string;
     }
 
@@ -94,20 +132,48 @@ export namespace Dashboard {
       request: IBand;
     }
 
-    export interface ILogsGetParams {
+    export interface IBandsValidateRemoveBandParams {
+      bandId: string;
+    }
+
+    export interface IBandsRemoveBandParams {
+      request: IRemoveBandRequest;
+    }
+
+    export interface ILogsGetMarketParams {
       marketId: string;
+    }
+
+    export interface ILogsGetBandParams {
+      bandId: string;
     }
 
     export interface IMarketsCreateParams {
       request: IMarket;
     }
 
+    export interface IMarketsDeleteMarketParams {
+      marketId: string;
+    }
+
     export interface IMarketsStartMarketParams {
+      id: string;
+    }
+
+    export interface IMarketsValidateStopParams {
       id: string;
     }
 
     export interface IMarketsStopMarketParams {
       request: IStopMarketRequest;
+    }
+
+    export interface IMarketsGetLatestStatsParams {
+      marketId: string;
+    }
+
+    export interface IMarketsGetStatsParams {
+      marketId: string;
     }
     export class BandsService extends ApiService {
 
@@ -132,13 +198,39 @@ export namespace Dashboard {
         requestParams.body = params.request;
         return this.executeRequest<IStoredBand>(requestParams);
       }
+
+      public async validateRemoveBand(params: IBandsValidateRemoveBandParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/bands/validate-remove/${params.bandId}`
+        };
+        return this.executeRequest<IValidateRemoveResult>(requestParams);
+      }
+
+      public async removeBand(params: IBandsRemoveBandParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/bands/remove`
+        };
+
+        requestParams.body = params.request;
+        return this.executeRequest<void>(requestParams);
+      }
     }
     export class LogsService extends ApiService {
 
-      public async get(params: ILogsGetParams) {
+      public async getMarket(params: ILogsGetMarketParams) {
         const requestParams: IRequestParams = {
           method: 'GET',
-          url: `${baseApiUrl}/api/logs/${params.marketId}`
+          url: `${baseApiUrl}/api/logs/market/${params.marketId}`
+        };
+        return this.executeRequest<IStoredLog[]>(requestParams);
+      }
+
+      public async getBand(params: ILogsGetBandParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/logs/band/${params.bandId}`
         };
         return this.executeRequest<IStoredLog[]>(requestParams);
       }
@@ -163,12 +255,28 @@ export namespace Dashboard {
         return this.executeRequest<IStoredMarket>(requestParams);
       }
 
+      public async deleteMarket(params: IMarketsDeleteMarketParams) {
+        const requestParams: IRequestParams = {
+          method: 'DELETE',
+          url: `${baseApiUrl}/api/markets/${params.marketId}`
+        };
+        return this.executeRequest<void>(requestParams);
+      }
+
       public async startMarket(params: IMarketsStartMarketParams) {
         const requestParams: IRequestParams = {
           method: 'POST',
           url: `${baseApiUrl}/api/markets/start/${params.id}`
         };
         return this.executeRequest<IStoredMarket>(requestParams);
+      }
+
+      public async validateStop(params: IMarketsValidateStopParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/markets/attempt_stop/${params.id}`
+        };
+        return this.executeRequest<IValidateStopResult>(requestParams);
       }
 
       public async stopMarket(params: IMarketsStopMarketParams) {
@@ -179,6 +287,30 @@ export namespace Dashboard {
 
         requestParams.body = params.request;
         return this.executeRequest<any>(requestParams);
+      }
+
+      public async getNetworkId() {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/markets/network_id`
+        };
+        return this.executeRequest<number>(requestParams);
+      }
+
+      public async getLatestStats(params: IMarketsGetLatestStatsParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/markets/latest_stats/${params.marketId}`
+        };
+        return this.executeRequest<IMarketStats>(requestParams);
+      }
+
+      public async getStats(params: IMarketsGetStatsParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/markets/stats/${params.marketId}`
+        };
+        return this.executeRequest<IMarketStatsHistory[]>(requestParams);
       }
     }
     export class TokenPairsService extends ApiService {

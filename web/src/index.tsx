@@ -13,11 +13,13 @@ Dashboard.Initialize({ host: 'localhost:8662' });
 AqueductRemote.Initialize({ host: 'localhost:8700' });
 
 (async () => {
-  await Promise.all([
-    tokenPairStore.initialize(),
-    marketStore.initialize(),
-    accountStore.initialize()
-  ]);
+  try {
+    await Promise.all([
+      tokenPairStore.initialize(),
+      marketStore.initialize(),
+      accountStore.initialize()
+    ]);
+  } catch (err) { console.error(err); }
 
   ReactDOM.render((
     <HashRouter>

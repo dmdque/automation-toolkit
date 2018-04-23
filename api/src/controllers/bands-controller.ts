@@ -1,6 +1,7 @@
 import { Body, Get, Post, Query, Route, Tags } from 'tsoa';
 import { bandRepository, IBand, IStoredBand } from '../db/band-repository';
 import { ServerError } from '../errors/server-error';
+import { BandService, IRemoveBandRequest, IValidateRemoveResult } from '../services/band-service';
 
 @Route('bands')
 export class BandsController {
@@ -13,8 +14,8 @@ export class BandsController {
   @Post()
   @Tags('Bands')
   public async createBand(@Body() request: IBand): Promise<IStoredBand> {
-    if (request.spread <= 0 || request.spread > 1) {
-      throw new ServerError('spread should be > 0 and <= 1 (decimals)', 400);
+    if (request.spreadBps <= 0 || request.spreadBps > 10000) {
+      throw new ServerError('spread should be > 0 and <= 10000 (bps)', 400);
     }
 
     if (request.ratio < .01 || request.ratio > 1) {
@@ -26,5 +27,17 @@ export class BandsController {
     }
 
     return await bandRepository.create(request);
+  }
+
+  @Post('validate-remove/{bandId}')
+  @Tags('Bands')
+  public async validateRemoveBand(bandId: string): Promise<IValidateRemoveResult> {
+    return await new BandService().validateRemove(bandId);
+  }
+
+  @Post('remove')
+  @Tags('Bands')
+  public async removeBand(@Body() request: IRemoveBandRequest) {
+    await new BandService().remove(request);
   }
 }

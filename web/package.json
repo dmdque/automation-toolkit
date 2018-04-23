@@ -6,13 +6,15 @@
   "author": "ERC dEX",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --config=webpack.config.js --port=8663 --mode=development",
-    "build:prod": "webpack --config=webpack.config.prod.js",
+    "start": "webpack-dev-server --config=webpack.config.js --port=8663 --host=0.0.0.0 --mode=development",
+    "build:prod": "webpack --config=./webpack.config.js --mode=development",
+    "serve:prod": "yarn build:prod && tsc ./src/server.ts && node ./dist/server.js",
     "generate:clients": "yarn generate:client && yarn generate:aqueduct:remote",
     "generate:client": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8662 --outputPath api/api.ts --namespace Dashboard",
     "generate:aqueduct:remote": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8700 --outputPath api/aqueduct-remote.ts --namespace AqueductRemote"
   },
   "dependencies": {
+    "@types/express": "^4.11.1",
     "@types/handlebars": "^4.0.37",
     "@types/node": "^8.0.31",
     "@types/react": "^16.0.7",
@@ -25,6 +27,7 @@
     "clean-webpack-plugin": "^0.1.16",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.7",
+    "express": "^4.16.3",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^1.1.11",
     "handlebars": "^4.0.11",

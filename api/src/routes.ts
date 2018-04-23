@@ -10,7 +10,7 @@ const models: TsoaRoute.Models = {
     "properties": {
       "marketId": { "dataType": "string", "required": true },
       "ratio": { "dataType": "double", "required": true },
-      "spread": { "dataType": "double", "required": true },
+      "spreadBps": { "dataType": "double", "required": true },
       "expirationSeconds": { "dataType": "double", "required": true },
       "side": { "dataType": "string", "required": true },
       "_id": { "dataType": "string", "required": true },
@@ -20,9 +20,20 @@ const models: TsoaRoute.Models = {
     "properties": {
       "marketId": { "dataType": "string", "required": true },
       "ratio": { "dataType": "double", "required": true },
-      "spread": { "dataType": "double", "required": true },
+      "spreadBps": { "dataType": "double", "required": true },
       "expirationSeconds": { "dataType": "double", "required": true },
       "side": { "dataType": "string", "required": true },
+    },
+  },
+  "IValidateRemoveResult": {
+    "properties": {
+      "hasActiveOrders": { "dataType": "boolean", "required": true },
+    },
+  },
+  "IRemoveBandRequest": {
+    "properties": {
+      "bandId": { "dataType": "string", "required": true },
+      "immediateCancelation": { "dataType": "boolean", "required": true },
     },
   },
   "IStoredLog": {
@@ -63,8 +74,40 @@ const models: TsoaRoute.Models = {
       "active": { "dataType": "boolean" },
     },
   },
+  "IValidateStopResult": {
+    "properties": {
+      "hasActiveBands": { "dataType": "boolean", "required": true },
+    },
+  },
   "IStopMarketRequest": {
     "properties": {
+      "marketId": { "dataType": "string", "required": true },
+      "immediateCancelation": { "dataType": "boolean", "required": true },
+    },
+  },
+  "IMarketStats": {
+    "properties": {
+      "baseBalance": { "dataType": "string", "required": true },
+      "baseUsdBalance": { "dataType": "string", "required": true },
+      "quoteBalance": { "dataType": "string", "required": true },
+      "quoteUsdBalance": { "dataType": "string", "required": true },
+      "ethBalance": { "dataType": "string", "required": true },
+      "ethUsdBalance": { "dataType": "string", "required": true },
+      "openBaseAmount": { "dataType": "string", "required": true },
+      "openQuoteAmount": { "dataType": "string", "required": true },
+    },
+  },
+  "IMarketStatsHistory": {
+    "properties": {
+      "baseBalance": { "dataType": "string", "required": true },
+      "baseUsdBalance": { "dataType": "string", "required": true },
+      "quoteBalance": { "dataType": "string", "required": true },
+      "quoteUsdBalance": { "dataType": "string", "required": true },
+      "ethBalance": { "dataType": "string", "required": true },
+      "ethUsdBalance": { "dataType": "string", "required": true },
+      "openBaseAmount": { "dataType": "string", "required": true },
+      "openQuoteAmount": { "dataType": "string", "required": true },
+      "dateCreated": { "dataType": "datetime", "required": true },
       "marketId": { "dataType": "string", "required": true },
     },
   },
@@ -127,7 +170,45 @@ export function RegisterRoutes(app: any) {
       const promise = controller.createBand.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.get('/api/logs/:marketId',
+  app.post('/api/bands/validate-remove/:bandId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        bandId: { "in": "path", "name": "bandId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new BandsController();
+
+
+      const promise = controller.validateRemoveBand.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/bands/remove',
+    function(request: any, response: any, next: any) {
+      const args = {
+        request: { "in": "body", "name": "request", "required": true, "ref": "IRemoveBandRequest" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new BandsController();
+
+
+      const promise = controller.removeBand.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/logs/market/:marketId',
     function(request: any, response: any, next: any) {
       const args = {
         marketId: { "in": "path", "name": "marketId", "required": true, "dataType": "string" },
@@ -143,7 +224,26 @@ export function RegisterRoutes(app: any) {
       const controller = new LogsController();
 
 
-      const promise = controller.getLogs.apply(controller, validatedArgs);
+      const promise = controller.getMarketLogs.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/logs/band/:bandId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        bandId: { "in": "path", "name": "bandId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new LogsController();
+
+
+      const promise = controller.getBandLogs.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/api/markets',
@@ -162,6 +262,25 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.get.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.delete('/api/markets/:marketId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        marketId: { "in": "path", "name": "marketId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.deleteMarket.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.post('/api/markets',
@@ -202,6 +321,25 @@ export function RegisterRoutes(app: any) {
       const promise = controller.startMarket.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.post('/api/markets/attempt_stop/:id',
+    function(request: any, response: any, next: any) {
+      const args = {
+        id: { "in": "path", "name": "id", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.validateStop.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.post('/api/markets/stop',
     function(request: any, response: any, next: any) {
       const args = {
@@ -219,6 +357,62 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.stopMarket.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/markets/network_id',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.getNetworkId.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/markets/latest_stats/:marketId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        marketId: { "in": "path", "name": "marketId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.getLatestStats.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/markets/stats/:marketId',
+    function(request: any, response: any, next: any) {
+      const args = {
+        marketId: { "in": "path", "name": "marketId", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new MarketsController();
+
+
+      const promise = controller.getStats.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/api/token-pairs',

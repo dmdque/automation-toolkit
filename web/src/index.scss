@@ -1,4 +1,5 @@
 @import "./vendor/font-awesome/scss/font-awesome.scss";
+@import "common/shared.scss";
 
 $pewter: #7EA1E4;
 
@@ -124,4 +125,14 @@ h1 {
 
 .lowercase {
   text-transform: lowercase;
+}
+
+span.link {
+  color: $primary;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    opacity: .8;
+  }
 }
