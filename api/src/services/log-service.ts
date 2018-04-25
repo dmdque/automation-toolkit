@@ -30,7 +30,15 @@ export interface IAdditionalLogParams {
   };
 }
 
-export class LogService {
+export interface ILogService {
+  getMarketLogs(marketId: string): Promise<IStoredLog[]>;
+  getBandLogs(bandId: string): Promise<IStoredLog[]>;
+  addMarketLog({ severity, message, marketId }: IAddMarketLogParams): void;
+  addBandLog({ severity, message, bandId }: IAddBandLogParams): void;
+  add<T extends LogTypes>(params: IAddLogParams<T>): Promise<IStoredLog>;
+}
+
+export class LogService implements ILogService {
   public async getMarketLogs(marketId: string): Promise<IStoredLog[]> {
     return await logRepository.find({ marketId }, {
       sort: {

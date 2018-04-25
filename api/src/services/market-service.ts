@@ -187,7 +187,7 @@ export class MarketService {
 
     const priceFeed = new DefaultPriceFeed();
     const baseUsdBalance = await priceFeed.getPrice(baseTokenSymbol, 'USD');
-    const quoteUsdBalance = await priceFeed.getPrice(baseTokenSymbol, 'USD');
+    const quoteUsdBalance = await priceFeed.getPrice(quoteTokenSymbol, 'USD');
     const ethUsdBalance = await priceFeed.getPrice('ETH', 'USD');
 
     const stats: IMarketStats = {

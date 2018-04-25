@@ -1,6 +1,19 @@
 import { Aqueduct } from 'aqueduct';
 
-export class TokenPairCache {
+export interface ITokenPairCache {
+  getTokenPairs(networkId: number): Promise<Aqueduct.Api.ITokenPair[]>;
+  getTokenBySymbol(params: {
+    networkId: number;
+    symbol: string;
+  }): Promise<Aqueduct.Api.IToken>;
+  getTokenPair(params: {
+    networkId: number;
+    baseSymbol: string;
+    quoteSymbol: string;
+  }): Promise<Aqueduct.Api.ITokenPair>;
+}
+
+export class TokenPairCache implements ITokenPairCache {
   private tokenPairsMap: { [networkId: number]: Promise<Aqueduct.Api.ITokenPair[]> | undefined } = {};
 
   public async getTokenPairs(networkId: number) {
@@ -8,8 +21,13 @@ export class TokenPairCache {
       return await this.tokenPairsMap[networkId] as Aqueduct.Api.ITokenPair[];
     }
 
-    const tokenPairs = this.tokenPairsMap[networkId] = new Aqueduct.Api.TokenPairsService().get({ networkId });
-    return await tokenPairs;
+    try {
+      const tokenPairs = this.tokenPairsMap[networkId] = new Aqueduct.Api.TokenPairsService().get({ networkId });
+      return await tokenPairs;
+    } catch (err) {
+      console.error('failed to get token pairs...');
+      throw err;
+    }
   }
 
   public async getTokenBySymbol(params: { networkId: number; symbol: string; }) {

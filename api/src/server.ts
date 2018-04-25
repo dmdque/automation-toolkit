@@ -13,27 +13,29 @@ import './controllers/logs-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { RegisterRoutes } from './routes';
+import { DefaultPriceFeed } from './services/default-price-feed';
 import { AqueductRemote } from './swagger/aqueduct-remote';
 import { waitForAqueductRemote } from './wait-for-aqueduct-remote';
 import { Worker } from './worker/worker';
 
 (global as any).WebSocket = webSocket;
 
-Aqueduct.Initialize();
 AqueductRemote.Initialize({ host: 'aqueduct-remote:8700' });
+Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
 
 (async () => {
   await waitForAqueductRemote();
   config.networkId = await new AqueductRemote.Api.WalletService().getNetworkId();
+  config.priceFeed = new DefaultPriceFeed();
   new Worker().start();
+
+  await tokenPairCache.getTokenPairs(config.networkId);
 
   const app = express();
   const server = http.createServer(app);
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
   app.use(methodOverride());
-
-  await tokenPairCache.getTokenPairs(config.networkId);
 
   app.use('/swagger.json', (_req, res) => {
     res.sendFile(__dirname + '/swagger.json');
@@ -74,6 +76,7 @@ AqueductRemote.Initialize({ host: 'aqueduct-remote:8700' });
   });
 
   const onError = (err: Error) => {
+    console.error('uncaughtException...');
     console.error(err);
   };
 

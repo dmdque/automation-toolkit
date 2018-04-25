@@ -115,7 +115,18 @@ export namespace ${namespace} {
     {{/operations}}
     {{/services}}
     {{#services}}
-    export class {{name}} extends ApiService {
+    export interface I{{name}} {
+      {{#operations}}
+      {{#if description}}
+      /**
+       * {{description}}
+       */
+      {{/if}}
+      {{id}}({{signature}}): Promise<{{returnType}}>;
+      {{/operations}}
+    }
+
+    export class {{name}} extends ApiService implements I{{name}} {
       {{#operations}}
 
       {{#if description}}

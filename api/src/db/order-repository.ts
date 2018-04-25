@@ -24,15 +24,20 @@ export interface IOrder {
   accountId?: number;
   state: number;
   source: string;
-  bandId: string;
+  marketId: string;
+  bandId?: string;
   bound: boolean;
+  valid: boolean;
 }
 
 export interface IStoredOrder extends IOrder {
   _id: string;
 }
 
-export class OrderRepository extends Repository<IOrder, IStoredOrder> {
+export class OrderRepository extends Repository<IOrder, IStoredOrder> implements IOrderRepository {
+}
+
+export class IOrderRepository extends Repository<IOrder, IStoredOrder> {
 }
 
 export const orderRepository = new OrderRepository();

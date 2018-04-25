@@ -12,6 +12,8 @@ services:
     build: ./api
     ports:
       - "8662:8662"
+    environment:
+      - AQUEDUCT_API_KEY_ID
     links:
       - aqueduct-remote
     volumes:
@@ -22,7 +24,6 @@ services:
     ports:
       - "8700:8700"
     environment:
-      - PARITY_NODE_URL
       - AQUEDUCT_API_KEY_ID
       - ETHEREUM_CHAIN
     links:
@@ -30,7 +31,7 @@ services:
     volumes:
       - ./aqueduct-remote/dist:/app/dist
   parity:
-    image: parity/parity:v1.10.1
+    build: ./parity
     ports:
       - "8545:8545"
       - "8546:8546"
@@ -40,6 +41,5 @@ services:
       - ETHEREUM_CHAIN
     volumes:
       - ./parity-data:/root/.local/share/io.parity.ethereum/
-    command: "--force-ui --unsafe-expose --chain $ETHEREUM_CHAIN --base-path /root/.local/share/io.parity.ethereum/"
-
-
+    entrypoint: /bin/bash
+    command: ["/runtime-scripts/start.sh"]

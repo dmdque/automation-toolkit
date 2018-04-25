@@ -18,10 +18,6 @@ export class BandsController {
       throw new ServerError('spread should be > 0 and <= 10000 (bps)', 400);
     }
 
-    if (request.ratio < .01 || request.ratio > 1) {
-      throw new ServerError('ratio should be > .01 and < 1', 400);
-    }
-
     if (request.expirationSeconds < 600) {
       throw new ServerError('expirationSeconds should be >= 600 (10 minutes)');
     }

@@ -1,4 +1,5 @@
 import * as Datastore from 'nedb';
+import { config } from '../config';
 
 export interface IStoredModel {
   _id: string;
@@ -15,12 +16,23 @@ export interface IFindOptions<T> {
 
 export type StoredModel<T> = IStoredModel & T;
 
-export abstract class Repository<T, S extends StoredModel<T>> {
+export interface IRepository<T, S extends StoredModel<T>> {
+  create(data: T): Promise<S>;
+  find(data: Partial<S>, options?: IFindOptions<T>): Promise<S[]>;
+  findOne(data: Partial<S>): Promise<S | undefined>;
+  update(query: Partial<S>, data: T): Promise<number>;
+  count(query: Partial<T>): Promise<number>;
+  delete(query: Partial<S>): Promise<number>;
+}
+
+export abstract class Repository<T, S extends StoredModel<T>> implements IRepository<T, S> {
   private readonly datastore: Datastore;
 
   constructor() {
+    const directory = process.env.NODE_ENV === 'test' ? 'test-data' : 'data';
+
     this.datastore = new Datastore({
-      filename: `./data/${this.constructor.name.toLowerCase().replace('repository', '')}.db`,
+      filename: `./${directory}/${this.constructor.name.toLowerCase().replace('repository', '')}.db`,
       autoload: true
     });
   }

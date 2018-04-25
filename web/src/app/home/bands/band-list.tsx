@@ -3,7 +3,7 @@ import { flashMessageStore } from 'app/flash-message/flash-message-store';
 import { ISelectStopBehaviorProps, SelectStopBehavior } from 'app/home/select-stop-behavior';
 import { TextInput } from 'common/form/text-input';
 import { IScrollableGridColumn, ScrollableGrid } from 'common/grid/scrollable-grid';
-import { isValidFloat } from 'common/utils/numbers';
+import { isValidInt } from 'common/utils/numbers';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
@@ -28,7 +28,9 @@ interface IInputValidation {
 @observer
 export class BandList extends React.Component<IBandListProps> {
   @observable private spreadBps = '';
-  @observable private ratio = '';
+  @observable private toleranceBps = '';
+  @observable private units = '';
+  @observable private minUnits = '';
   @observable private duration = '';
   @observable private viewingBand?: Dashboard.Api.IStoredBand;
   @observable private selectStopBehaviorProps?: ISelectStopBehaviorProps;
@@ -41,8 +43,18 @@ export class BandList extends React.Component<IBandListProps> {
         widthPoints: 1
       },
       {
-        header: 'Ratio %',
-        getElement: b => <span>{b.ratio * 100}%</span>,
+        header: 'Tolerance BPS',
+        getElement: b => <span>{b.toleranceBps}</span>,
+        widthPoints: 1
+      },
+      {
+        header: 'Units',
+        getElement: b => <span>{b.units}</span>,
+        widthPoints: 1
+      },
+      {
+        header: 'Min. Units',
+        getElement: b => <span>{b.minUnits}</span>,
         widthPoints: 1
       },
       {
@@ -98,8 +110,12 @@ export class BandList extends React.Component<IBandListProps> {
       <form className='fl h-padding' onSubmit={this.onSubmit}>
         <TextInput required={true} type='string' placeholder='Spread BPS'
           onChange={this.handleInputChange(v => this.spreadBps = v)} errorMessage={this.spreadValidation().error} />
-        <TextInput required={true} type='string' placeholder='Ratio %'
-          onChange={this.handleInputChange(v => this.ratio = v)} errorMessage={this.ratioValidation().error} />
+        <TextInput required={true} type='string' placeholder='Tolerance BPS'
+          onChange={this.handleInputChange(v => this.toleranceBps = v)} errorMessage={this.toleranceValidation().error} />
+        <TextInput required={true} type='string' placeholder='Units'
+          onChange={this.handleInputChange(v => this.units = v)} errorMessage={this.unitsValidation().error} />
+        <TextInput required={true} type='string' placeholder='Min Units'
+          onChange={this.handleInputChange(v => this.minUnits = v)} errorMessage={this.minUnitsValidation().error} />
         <TextInput required={true} type='string' placeholder='Duration (seconds)'
           onChange={this.handleInputChange(v => this.duration = v)} errorMessage={this.durationValidation().error} />
         <div className='fl vc'>
@@ -137,9 +153,18 @@ export class BandList extends React.Component<IBandListProps> {
   }
 
   private readonly getRowContent = (b: Dashboard.Api.IStoredBand) => {
+    let maxUnits = 0;
+    this.props.bands.forEach(band => {
+      if (!maxUnits || band.units > maxUnits) {
+        maxUnits = band.units;
+      }
+    });
+
+    const percentage = Math.ceil((b.units / maxUnits) * 100);
+
     return (
       <div className='volume-bar-container'>
-        <div className={`volume-bar ${b.side}`} style={{ width: `${b.ratio * 100}%`, height: '100%' }} />
+        <div className={`volume-bar ${b.side}`} style={{ width: `${percentage}%`, height: '100%' }} />
       </div>
     );
   }
@@ -150,52 +175,88 @@ export class BandList extends React.Component<IBandListProps> {
 
   private spreadValidation(): IInputValidation {
     if (!this.spreadBps) { return { empty: true }; }
-    if (!isValidFloat(this.spreadBps)) { return { error: 'Please enter a valid number' }; }
+    if (!isValidInt(this.spreadBps)) { return { error: 'Please enter a valid integer' }; }
 
     const value = parseInt(this.spreadBps, 10);
-    if (value <= 0 || value >= 100) {
+    if (value <= 0 || value >= 10000) {
       return { error: 'Must be between 0 and 10000' };
     }
 
     return { value };
   }
 
-  private ratioValidation(): IInputValidation {
-    if (!this.ratio) { return { empty: true }; }
-    if (!isValidFloat(this.ratio)) { return { error: 'Please enter a valid number' }; }
+  private toleranceValidation(): IInputValidation {
+    if (!this.toleranceBps) { return { empty: true }; }
+    if (!isValidInt(this.toleranceBps)) { return { error: 'Please enter a valid integer' }; }
 
-    const float = parseFloat(this.ratio);
-    if (float < .1 || float > 100) {
-      return { error: 'Must be between .1 and 100' };
+    const value = parseInt(this.toleranceBps, 10);
+    if (value <= 0 || value >= 10000) {
+      return { error: 'Must be between 0 and 10000' };
     }
 
-    return { value: float / 100 };
+    const spreadValidation = this.spreadValidation();
+    if (spreadValidation.value && value >= spreadValidation.value) {
+      return { error: 'Tolerance must be less than Spread BPS' };
+    }
+
+    return { value };
+  }
+
+  private unitsValidation(): IInputValidation {
+    if (!this.units) { return { empty: true }; }
+    if (!isValidInt(this.units)) { return { error: 'Please enter a valid integer' }; }
+
+    const value = parseInt(this.units, 10);
+    if (value <= 0) {
+      return { error: 'Value must be > 0' };
+    }
+
+    return { value };
+  }
+
+  private minUnitsValidation(): IInputValidation {
+    if (!this.minUnits) { return { empty: true }; }
+    if (!isValidInt(this.minUnits)) { return { error: 'Please enter a valid integer' }; }
+
+    const value = parseInt(this.units, 10);
+    if (value <= 0) { return { error: 'Value must be > 0' }; }
+
+    const unitsValidation = this.unitsValidation();
+    if (unitsValidation.value && value < unitsValidation.value) {
+      return { error: `Value must be greater than 'units'` };
+    }
+
+    return {
+      value: parseInt(this.minUnits, 10)
+    };
   }
 
   private durationValidation(): IInputValidation {
     if (!this.duration) { return { empty: true }; }
-    if (!isValidFloat(this.duration)) { return { error: 'Please enter a valid number' }; }
+    if (!isValidInt(this.duration)) { return { error: 'Please enter a valid integer' }; }
 
-    const float = parseFloat(this.duration);
-    if (float < 600) {
+    const value = parseInt(this.duration, 10);
+    if (value < 600) {
       return { error: 'Must be at least 600 (10 minutes)' };
     }
 
-    return { value: float };
+    return { value };
   }
 
   private isValidCreate() {
-    return this.spreadValidation().value && this.ratioValidation().value && this.durationValidation().value;
+    return this.spreadValidation().value && this.unitsValidation().value && this.durationValidation().value && this.minUnitsValidation().value;
   }
 
   private readonly onSubmit: React.ChangeEventHandler<HTMLFormElement> = async event => {
     event.preventDefault();
 
     const spread = this.spreadValidation();
-    const ratio = this.ratioValidation();
+    const units = this.unitsValidation();
+    const minUnits = this.minUnitsValidation();
     const duration = this.durationValidation();
+    const tolerance = this.toleranceValidation();
 
-    if (!spread.value || !ratio.value || !duration.value) { return; }
+    if (!spread.value || !units.value || !duration.value || !minUnits.value || !tolerance.value) { return; }
 
     const { marketId, side } = this.props;
     try {
@@ -204,12 +265,14 @@ export class BandList extends React.Component<IBandListProps> {
           marketId,
           side,
           spreadBps: spread.value,
-          ratio: ratio.value,
-          expirationSeconds: duration.value
+          units: units.value,
+          minUnits: minUnits.value,
+          expirationSeconds: duration.value,
+          toleranceBps: tolerance.value
         }
       });
       this.props.onCreate(band);
-      this.spreadBps = this.duration = this.ratio = '';
+      this.spreadBps = this.duration = this.units = this.minUnits = this.toleranceBps = '';
     } catch (err) {
       flashMessageStore.addMessage({
         type: 'error',

@@ -1,4 +1,4 @@
-import { Repository } from './repository';
+import { IRepository, Repository } from './repository';
 
 export interface IToken {
   name: string;
@@ -34,6 +34,9 @@ export interface IStoredMarket extends IMarket {
 }
 
 export class MarketRepository extends Repository<IMarket, IStoredMarket> {
+}
+
+export interface IMarketRepository extends IRepository<IMarket, IStoredMarket> {
 }
 
 export const marketRepository = new MarketRepository();

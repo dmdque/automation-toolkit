@@ -1,8 +1,3 @@
-const nodeUrl = process.env['PARITY_NODE_URL'];
-if (!nodeUrl) {
-  throw new Error(`PARITY_NODE_URL env var not set`);
-}
-
 const apiKeyId = process.env['AQUEDUCT_API_KEY_ID'];
 if (!apiKeyId) { throw new Error(`AQUEDUCT_API_KEY_ID env var not set`); }
 
@@ -16,7 +11,7 @@ if (chain !== 'foundation' && chain !== 'kovan') { throw new Error(`ETHEREUM_CHA
 const networkId = chain === 'foundation' ? 1 : 42;
 
 export const config = {
-  nodeUrl,
+  nodeUrl: 'http://parity:8545',
   apiKeyId,
   networkId
 };

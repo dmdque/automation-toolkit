@@ -71,7 +71,12 @@ export namespace AqueductRemote {
     export interface IWalletGetEthBalanceParams {
       account: string;
     }
-    export class TradingService extends ApiService {
+    export interface ITradingService {
+      createLimitOrder(params: ITradingCreateLimitOrderParams): Promise<IOrder>;
+      cancelOrder(params: ITradingCancelOrderParams): Promise<string>;
+    }
+
+    export class TradingService extends ApiService implements ITradingService {
 
       public async createLimitOrder(params: ITradingCreateLimitOrderParams) {
         const requestParams: IRequestParams = {
@@ -91,7 +96,15 @@ export namespace AqueductRemote {
         return this.executeRequest<string>(requestParams);
       }
     }
-    export class WalletService extends ApiService {
+    export interface IWalletService {
+      getAccounts(): Promise<any>;
+      getBalance(params: IWalletGetBalanceParams): Promise<string>;
+      getEthBalance(params: IWalletGetEthBalanceParams): Promise<any>;
+      getNodeHealth(): Promise<INodeHealth>;
+      getNetworkId(): Promise<number>;
+    }
+
+    export class WalletService extends ApiService implements IWalletService {
 
       public async getAccounts() {
         const requestParams: IRequestParams = {

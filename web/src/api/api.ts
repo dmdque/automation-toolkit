@@ -15,8 +15,10 @@ export namespace Dashboard {
 
     export interface IStoredBand {
       marketId: string;
-      ratio: number;
+      units: number;
+      minUnits: number;
       spreadBps: number;
+      toleranceBps: number;
       expirationSeconds: number;
       side: string;
       _id: string;
@@ -24,8 +26,10 @@ export namespace Dashboard {
 
     export interface IBand {
       marketId: string;
-      ratio: number;
+      units: number;
+      minUnits: number;
       spreadBps: number;
+      toleranceBps: number;
       expirationSeconds: number;
       side: string;
     }

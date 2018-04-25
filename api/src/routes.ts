@@ -9,8 +9,10 @@ const models: TsoaRoute.Models = {
   "IStoredBand": {
     "properties": {
       "marketId": { "dataType": "string", "required": true },
-      "ratio": { "dataType": "double", "required": true },
+      "units": { "dataType": "double", "required": true },
+      "minUnits": { "dataType": "double", "required": true },
       "spreadBps": { "dataType": "double", "required": true },
+      "toleranceBps": { "dataType": "double", "required": true },
       "expirationSeconds": { "dataType": "double", "required": true },
       "side": { "dataType": "string", "required": true },
       "_id": { "dataType": "string", "required": true },
@@ -19,8 +21,10 @@ const models: TsoaRoute.Models = {
   "IBand": {
     "properties": {
       "marketId": { "dataType": "string", "required": true },
-      "ratio": { "dataType": "double", "required": true },
+      "units": { "dataType": "double", "required": true },
+      "minUnits": { "dataType": "double", "required": true },
       "spreadBps": { "dataType": "double", "required": true },
+      "toleranceBps": { "dataType": "double", "required": true },
       "expirationSeconds": { "dataType": "double", "required": true },
       "side": { "dataType": "string", "required": true },
     },
