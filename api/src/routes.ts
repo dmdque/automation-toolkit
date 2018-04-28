@@ -1,11 +1,25 @@
 /* tslint:disable */
 import { Controller, ValidateParam, FieldErrors, ValidateError, TsoaRoute } from 'tsoa';
+import { AccountsController } from './controllers/accounts-controller';
 import { BandsController } from './controllers/bands-controller';
 import { LogsController } from './controllers/logs-controller';
 import { MarketsController } from './controllers/markets-controller';
 import { TokenPairsController } from './controllers/token-pairs-controller';
 
 const models: TsoaRoute.Models = {
+  "IStoredParityAccount": {
+    "properties": {
+      "account": { "dataType": "string", "required": true },
+      "locked": { "dataType": "boolean", "required": true },
+      "_id": { "dataType": "string", "required": true },
+    },
+  },
+  "IUnlockAccountRequest": {
+    "properties": {
+      "account": { "dataType": "string", "required": true },
+      "passphrase": { "dataType": "string", "required": true },
+    },
+  },
   "IStoredBand": {
     "properties": {
       "marketId": { "dataType": "string", "required": true },
@@ -136,6 +150,43 @@ const models: TsoaRoute.Models = {
 };
 
 export function RegisterRoutes(app: any) {
+  app.get('/api/accounts',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new AccountsController();
+
+
+      const promise = controller.getAccounts.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/accounts/unlock_account',
+    function(request: any, response: any, next: any) {
+      const args = {
+        request: { "in": "body", "name": "request", "required": true, "ref": "IUnlockAccountRequest" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new AccountsController();
+
+
+      const promise = controller.unlockAccount.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/api/bands',
     function(request: any, response: any, next: any) {
       const args = {

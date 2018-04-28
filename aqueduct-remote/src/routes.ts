@@ -48,6 +48,12 @@ const models: TsoaRoute.Models = {
       "error": { "dataType": "string" },
     },
   },
+  "IUnlockAccountParams": {
+    "properties": {
+      "account": { "dataType": "string", "required": true },
+      "passphrase": { "dataType": "string", "required": true },
+    },
+  },
 };
 
 export function RegisterRoutes(app: any) {
@@ -162,6 +168,43 @@ export function RegisterRoutes(app: any) {
 
 
       const promise = controller.getNodeHealth.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.post('/api/wallet/unlock_account',
+    function(request: any, response: any, next: any) {
+      const args = {
+        request: { "in": "body", "name": "request", "required": true, "ref": "IUnlockAccountParams" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new WalletController();
+
+
+      const promise = controller.unlockAccount.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/wallet/network_id',
+    function(request: any, response: any, next: any) {
+      const args = {
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new WalletController();
+
+
+      const promise = controller.getNetworkId.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
 

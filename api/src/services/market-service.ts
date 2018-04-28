@@ -7,8 +7,8 @@ import { IMarketStatsHistory, marketStatsHistoryRepository } from '../db/market-
 import { orderRepository } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
+import { toUnitAmount } from '../utils/conversion';
 import { BandService } from './band-service';
-import { DefaultPriceFeed } from './default-price-feed';
 import { LogService } from './log-service';
 
 export interface IStopMarketRequest {
@@ -173,7 +173,7 @@ export class MarketService {
     const buyBands = bands.filter(b => b.side === 'buy');
     for (let i = 0; i < buyBands.length; i++) {
       const buyBand = buyBands[i];
-      const orders = await orderRepository.find({ bandId: buyBand._id, bound: true });
+      const orders = await orderRepository.find({ bandId: buyBand._id, bound: true, valid: true });
       orders.forEach(o => openQuoteAmount = openQuoteAmount.add(o.makerTokenAmount));
     }
 
@@ -181,14 +181,17 @@ export class MarketService {
     const sellBands = bands.filter(b => b.side === 'sell');
     for (let i = 0; i < sellBands.length; i++) {
       const sellBand = sellBands[i];
-      const orders = await orderRepository.find({ bandId: sellBand._id, bound: true });
+      const orders = await orderRepository.find({ bandId: sellBand._id, bound: true, valid: true });
       orders.forEach(o => openBaseAmount = openBaseAmount.add(o.makerTokenAmount));
     }
 
-    const priceFeed = new DefaultPriceFeed();
-    const baseUsdBalance = await priceFeed.getPrice(baseTokenSymbol, 'USD');
-    const quoteUsdBalance = await priceFeed.getPrice(quoteTokenSymbol, 'USD');
-    const ethUsdBalance = await priceFeed.getPrice('ETH', 'USD');
+    const priceFeed = config.priceFeed;
+    const baseUnitBalance = toUnitAmount({ token: tokenPair.tokenA, value: baseBalance });
+    const baseUsdBalance = (await priceFeed.getPrice(baseTokenSymbol, 'USD')).times(baseUnitBalance).round(2);
+    const quoteUnitBalance = toUnitAmount({ token: tokenPair.tokenB, value: quoteBalance });
+    const quoteUsdBalance = (await priceFeed.getPrice(quoteTokenSymbol, 'USD')).times(quoteUnitBalance).round(2);
+    const ethUnitBalance = toUnitAmount({ token: { decimals: 18 }, value: ethBalance });
+    const ethUsdBalance = (await priceFeed.getPrice('ETH', 'USD')).times(ethUnitBalance).round(2);
 
     const stats: IMarketStats = {
       baseBalance,

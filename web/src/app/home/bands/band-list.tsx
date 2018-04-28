@@ -236,8 +236,8 @@ export class BandList extends React.Component<IBandListProps> {
     if (!isValidInt(this.duration)) { return { error: 'Please enter a valid integer' }; }
 
     const value = parseInt(this.duration, 10);
-    if (value < 600) {
-      return { error: 'Must be at least 600 (10 minutes)' };
+    if (value < 300 || value > 1200) {
+      return { error: 'Must be between least 300 and 1200 seconds (5-20 minutes)' };
     }
 
     return { value };

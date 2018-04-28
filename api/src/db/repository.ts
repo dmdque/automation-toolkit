@@ -1,5 +1,4 @@
 import * as Datastore from 'nedb';
-import { config } from '../config';
 
 export interface IStoredModel {
   _id: string;

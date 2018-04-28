@@ -185,6 +185,10 @@ const getPropertyTypeFromSwaggerProperty = (property: Swagger.ISchema): string =
       if (!items) { throw new Error(); }
 
       if (items.type) {
+        if (items.type === 'string') {
+          return 'string[]';
+        }
+
         return `any[]`;
       }
 

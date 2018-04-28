@@ -62,8 +62,8 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
           </Select>
           <Select label='Service Account' onChange={this.onAccountChange} required={true}>
             <option value='' selected={true} disabled={true} hidden={true}>Select Service Account</option>
-            {accountStore.accounts.map(a => (
-              <option key={a} value={a}>{a}</option>
+            {accountStore.accounts.filter(a => !a.locked).map(a => (
+              <option key={a.account} value={a.account}>{a.account}</option>
             ))}
           </Select>
           {this.selectedTokenPair && this.balances && <div>

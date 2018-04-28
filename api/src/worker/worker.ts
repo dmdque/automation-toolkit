@@ -12,20 +12,19 @@ export class Worker {
     this.watchMarketStats();
   }
 
-  private watchBands() {
+  private async watchBands() {
+    await this.stopAllMarkets();
+
     let isProcessing = false;
     setInterval(async () => {
       if (isProcessing) { return; }
       isProcessing = true;
 
       try {
-        const markets = await marketRepository.find({ active: true });
-        for (let i = 0; i < markets.length; i++) {
-          const market = markets[i];
-
+        const markets = await marketRepository.find({});
+        for (let market of markets) {
           const bands = await bandRepository.find({ marketId: market._id });
-          for (let index = 0; index < bands.length; index++) {
-            const band = bands[index];
+          for (let band of bands) {
             await this.bandService.start(band);
           }
         }
@@ -52,5 +51,13 @@ export class Worker {
       }
       isProcessing = false;
     }, 5000);
+  }
+
+  private async stopAllMarkets() {
+    const markets = await marketRepository.find({ active: true });
+    for (let market of markets) {
+      market.active = false;
+      await marketRepository.update({ _id: market._id }, market);
+    }
   }
 }

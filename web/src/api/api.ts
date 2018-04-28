@@ -13,6 +13,17 @@ export namespace Dashboard {
    */
   export namespace Api {
 
+    export interface IStoredParityAccount {
+      account: string;
+      locked: boolean;
+      _id: string;
+    }
+
+    export interface IUnlockAccountRequest {
+      account: string;
+      passphrase: string;
+    }
+
     export interface IStoredBand {
       marketId: string;
       units: number;
@@ -128,6 +139,10 @@ export namespace Dashboard {
     }
 
 
+    export interface IAccountsUnlockAccountParams {
+      request: IUnlockAccountRequest;
+    }
+
     export interface IBandsGetParams {
       marketId: string;
     }
@@ -178,6 +193,26 @@ export namespace Dashboard {
 
     export interface IMarketsGetStatsParams {
       marketId: string;
+    }
+    export class AccountsService extends ApiService {
+
+      public async get() {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/accounts`
+        };
+        return this.executeRequest<IStoredParityAccount[]>(requestParams);
+      }
+
+      public async unlockAccount(params: IAccountsUnlockAccountParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/accounts/unlock_account`
+        };
+
+        requestParams.body = params.request;
+        return this.executeRequest<void>(requestParams);
+      }
     }
     export class BandsService extends ApiService {
 

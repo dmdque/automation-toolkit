@@ -6,7 +6,7 @@
           "type": "node",
           "request": "launch",
           "program": "${workspaceRoot}/api/node_modules/mocha/bin/_mocha",
-          "args": ["-r", "ts-node/register", "${relativeFile}"],
+          "args": ["-t", "999999999", "-r", "ts-node/register", "${relativeFile}"],
           "cwd": "${workspaceRoot}",
           "protocol": "inspector",
           "internalConsoleOptions": "openOnSessionStart",

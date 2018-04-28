@@ -54,6 +54,11 @@ export namespace AqueductRemote {
       error?: string;
     }
 
+    export interface IUnlockAccountParams {
+      account: string;
+      passphrase: string;
+    }
+
 
     export interface ITradingCreateLimitOrderParams {
       request: ILimitOrderRequest;
@@ -70,6 +75,10 @@ export namespace AqueductRemote {
 
     export interface IWalletGetEthBalanceParams {
       account: string;
+    }
+
+    export interface IWalletUnlockAccountParams {
+      request: IUnlockAccountParams;
     }
     export interface ITradingService {
       createLimitOrder(params: ITradingCreateLimitOrderParams): Promise<IOrder>;
@@ -97,10 +106,11 @@ export namespace AqueductRemote {
       }
     }
     export interface IWalletService {
-      getAccounts(): Promise<any>;
+      getAccounts(): Promise<string[]>;
       getBalance(params: IWalletGetBalanceParams): Promise<string>;
       getEthBalance(params: IWalletGetEthBalanceParams): Promise<any>;
       getNodeHealth(): Promise<INodeHealth>;
+      unlockAccount(params: IWalletUnlockAccountParams): Promise<void>;
       getNetworkId(): Promise<number>;
     }
 
@@ -111,7 +121,7 @@ export namespace AqueductRemote {
           method: 'GET',
           url: `${baseApiUrl}/api/wallet/accounts`
         };
-        return this.executeRequest<any>(requestParams);
+        return this.executeRequest<string[]>(requestParams);
       }
 
       public async getBalance(params: IWalletGetBalanceParams) {
@@ -145,6 +155,16 @@ export namespace AqueductRemote {
           url: `${baseApiUrl}/api/wallet/node_health`
         };
         return this.executeRequest<INodeHealth>(requestParams);
+      }
+
+      public async unlockAccount(params: IWalletUnlockAccountParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/wallet/unlock_account`
+        };
+
+        requestParams.body = params.request;
+        return this.executeRequest<void>(requestParams);
       }
 
       public async getNetworkId() {

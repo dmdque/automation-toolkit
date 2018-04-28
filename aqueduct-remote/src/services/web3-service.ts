@@ -1,6 +1,7 @@
 import * as request from 'request-promise-native';
 import * as Web3 from 'web3';
 import { config } from '../config';
+import { ServerError } from '../server-error';
 
 interface IParityHealth {
   jsonrpc: string;
@@ -29,6 +30,11 @@ export interface INodeHealth {
   error?: string;
 }
 
+export interface IUnlockAccountParams {
+  account: string;
+  passphrase: string;
+}
+
 export class Web3Service {
   private readonly web3 = new Web3(new Web3.providers.HttpProvider(config.nodeUrl));
 
@@ -54,6 +60,20 @@ export class Web3Service {
     return this.web3;
   }
 
+  public async unlockAccount({ account, passphrase }: IUnlockAccountParams) {
+    return new Promise((resolve, reject) => {
+      (this.web3.personal as any).unlockAccount(account, passphrase, '0x0', (err: any) => {
+        if (err) {
+          console.error(err);
+          reject(new ServerError('Could not unlock account - possibly incorrect passphrase.', 401));
+          return;
+        }
+
+        resolve();
+      });
+    });
+  }
+
   public async getParityNodeHealth(): Promise<INodeHealth> {
     try {
       const health: IParityHealth = await request({
@@ -69,7 +89,9 @@ export class Web3Service {
         contentType: 'application/json'
       });
 
-      if (health.result.peers.status !== 'ok') {
+      if (health.result.peers.status !== 'ok'
+        // we're going to say this is okay
+        && health.result.peers.message !== 'You are connected to only one peer. Your node might not be reliable. Check your network connection.') {
         return {
           error: health.result.peers.message
         };

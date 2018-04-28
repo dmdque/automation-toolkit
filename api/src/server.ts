@@ -8,14 +8,15 @@ import * as methodOverride from 'method-override';
 import 'reflect-metadata';
 import { tokenPairCache } from './cache/token-pair-cache';
 import { config } from './config';
+import './controllers/accounts-controller';
 import './controllers/bands-controller';
 import './controllers/logs-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { RegisterRoutes } from './routes';
 import { DefaultPriceFeed } from './services/default-price-feed';
+import { PendingAqueductService } from './services/pending-aqueduct-service';
 import { AqueductRemote } from './swagger/aqueduct-remote';
-import { waitForAqueductRemote } from './wait-for-aqueduct-remote';
 import { Worker } from './worker/worker';
 
 (global as any).WebSocket = webSocket;
@@ -24,7 +25,7 @@ AqueductRemote.Initialize({ host: 'aqueduct-remote:8700' });
 Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
 
 (async () => {
-  await waitForAqueductRemote();
+  await new PendingAqueductService().waitForAqueductRemote();
   config.networkId = await new AqueductRemote.Api.WalletService().getNetworkId();
   config.priceFeed = new DefaultPriceFeed();
   new Worker().start();

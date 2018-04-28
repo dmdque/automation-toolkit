@@ -15,7 +15,7 @@ export const WackToken: IToken = {
   symbol: 'WAK'
 };
 
-const tokenPair: ITokenPair = {
+export const tokenPair: ITokenPair = {
   tokenA: ScamToken,
   tokenB: WackToken,
   baseVolume: '0',

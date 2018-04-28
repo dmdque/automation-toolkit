@@ -1,13 +1,13 @@
-import { Get, Query, Route, Tags } from 'tsoa';
+import { Body, Get, Post, Query, Route, Tags } from 'tsoa';
 import { config } from '../config';
-import { INodeHealth, Web3Service } from '../services/web3-service';
+import { INodeHealth, IUnlockAccountParams, Web3Service } from '../services/web3-service';
 import { ZeroExService } from '../services/zero-ex-service';
 
 @Route('wallet')
 export class WalletController {
   @Get('accounts')
   @Tags('Wallet')
-  public async getAccounts() {
+  public async getAccounts(): Promise<string[]> {
     return await new Web3Service().getAccounts();
   }
 
@@ -27,6 +27,12 @@ export class WalletController {
   @Tags('Wallet')
   public async getNodeHealth(): Promise<INodeHealth> {
     return await new Web3Service().getParityNodeHealth();
+  }
+
+  @Post('unlock_account')
+  @Tags('Wallet')
+  public async unlockAccount(@Body() request: IUnlockAccountParams): Promise<void> {
+    await new Web3Service().unlockAccount(request);
   }
 
   @Get('network_id')
