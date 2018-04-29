@@ -39,6 +39,7 @@ services:
       - "8180:8180"
     environment:
       - ETHEREUM_CHAIN
+      - AQUEDUCT_API_KEY_ID
     volumes:
       - ./parity-data:/root/.local/share/io.parity.ethereum/
     entrypoint: /bin/bash
