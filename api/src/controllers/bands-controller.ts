@@ -18,8 +18,8 @@ export class BandsController {
       throw new ServerError('spread should be > 0 and <= 10000 (bps)', 400);
     }
 
-    if (request.expirationSeconds < 600) {
-      throw new ServerError('expirationSeconds should be >= 600 (10 minutes)');
+    if (request.expirationSeconds < 300 || request.expirationSeconds > 1200) {
+      throw new ServerError('expirationSeconds should be >= 300 (5 minutes) and <= 1200 (20 minutes)');
     }
 
     return await bandRepository.create(request);
