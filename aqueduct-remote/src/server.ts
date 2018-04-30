@@ -55,10 +55,10 @@ Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
   });
 
   const port = 8700;
-  server.listen(port, '0.0.0.0', (err: Error) => {
+  server.listen(port, 'aqueduct-remote', (err: Error) => {
     if (err) {
       return console.log(err);
     }
-    console.log(`Listening on port ${port}.`);
+    console.log(`Listening on aqueduct-remote:${port}`);
   });
 })();

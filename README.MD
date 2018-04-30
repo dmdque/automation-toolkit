@@ -38,6 +38,10 @@ In order to create new markets, an Ethereum account must be linked. When first v
 
 Follow the link/step-by-step guide to create a new wallet or to import an existing wallet.
 
+### Generating signing token
+
+Depending on your platform, you may need to generate a new parity signing token to access the dashboard. This is a security measure to verify that the user is authorized to access the dashboard.
+
 ## Unlocking Wallet
 
 To allow automated trading, the wallet must be unlocked in Parity. Unlocking allows transactions/signing to occur without user confirmation. Once an account has been added, the dashboard should automatically prompt you to unlock your account:
@@ -88,3 +92,5 @@ AMM supports programmatic band management via a local REST API which can be used
 ## Dashboard
 
 ![Dashboard](./docs/screenshots/dashboard.png)
+
+TODO

@@ -1,5 +1,4 @@
 import { Dashboard } from 'api/api';
-import { AqueductRemote } from 'api/aqueduct-remote';
 import { App } from 'app/app';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -10,7 +9,6 @@ import './index.scss';
 import { tokenPairStore } from './stores/token-pair-store';
 
 Dashboard.Initialize({ host: 'localhost:8662' });
-AqueductRemote.Initialize({ host: 'localhost:8700' });
 
 (async () => {
   try {

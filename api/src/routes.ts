@@ -187,6 +187,45 @@ export function RegisterRoutes(app: any) {
       const promise = controller.unlockAccount.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
+  app.get('/api/accounts/get_token_balance',
+    function(request: any, response: any, next: any) {
+      const args = {
+        account: { "in": "query", "name": "account", "required": true, "dataType": "string" },
+        tokenAddress: { "in": "query", "name": "tokenAddress", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new AccountsController();
+
+
+      const promise = controller.getTokenBalance.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
+  app.get('/api/accounts/get_eth_balance',
+    function(request: any, response: any, next: any) {
+      const args = {
+        account: { "in": "query", "name": "account", "required": true, "dataType": "string" },
+      };
+
+      let validatedArgs: any[] = [];
+      try {
+        validatedArgs = getValidatedArgs(args, request);
+      } catch (err) {
+        return next(err);
+      }
+
+      const controller = new AccountsController();
+
+
+      const promise = controller.getEthBalance.apply(controller, validatedArgs);
+      promiseHandler(controller, promise, response, next);
+    });
   app.get('/api/bands',
     function(request: any, response: any, next: any) {
       const args = {

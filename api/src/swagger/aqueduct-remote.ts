@@ -108,7 +108,7 @@ export namespace AqueductRemote {
     export interface IWalletService {
       getAccounts(): Promise<string[]>;
       getBalance(params: IWalletGetBalanceParams): Promise<string>;
-      getEthBalance(params: IWalletGetEthBalanceParams): Promise<any>;
+      getEthBalance(params: IWalletGetEthBalanceParams): Promise<string>;
       getNodeHealth(): Promise<INodeHealth>;
       unlockAccount(params: IWalletUnlockAccountParams): Promise<void>;
       getNetworkId(): Promise<number>;
@@ -146,7 +146,7 @@ export namespace AqueductRemote {
         requestParams.queryParameters = {
           account: params.account,
         };
-        return this.executeRequest<any>(requestParams);
+        return this.executeRequest<string>(requestParams);
       }
 
       public async getNodeHealth() {

@@ -13,13 +13,13 @@ export class WalletController {
 
   @Get('balance')
   @Tags('Wallet')
-  public async getBalance(@Query() tokenAddress: string, @Query() account: string) {
+  public async getBalance(@Query() tokenAddress: string, @Query() account: string): Promise<string> {
     return await new ZeroExService().getTokenBalance(account, tokenAddress);
   }
 
   @Get('eth_balance')
   @Tags('Wallet')
-  public async getEthBalance(@Query() account: string) {
+  public async getEthBalance(@Query() account: string): Promise<string> {
     return await new Web3Service().getEthBalance(account);
   }
 

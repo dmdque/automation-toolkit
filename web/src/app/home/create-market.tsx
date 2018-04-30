@@ -1,5 +1,4 @@
 import { Dashboard } from 'api/api';
-import { AqueductRemote } from 'api/aqueduct-remote';
 import { flashMessageStore } from 'app/flash-message/flash-message-store';
 import { BigNumber } from 'bignumber.js';
 import { Form } from 'common/form/form';
@@ -152,11 +151,11 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
   }
 
   private async loadBalances(tokenPair: Dashboard.Api.ITokenPair, account: string) {
-    const getBalance = async (tokenAddress: string) => await new AqueductRemote.Api.WalletService().getBalance({ account, tokenAddress });
+    const getBalance = async (tokenAddress: string) => await new Dashboard.Api.AccountsService().getTokenBalance({ account, tokenAddress });
 
     const baseBalance = new BigNumber(await getBalance(tokenPair.tokenA.address));
     const quoteBalance = new BigNumber(await getBalance(tokenPair.tokenB.address));
-    const ethBalance = new BigNumber(await new AqueductRemote.Api.WalletService().getEthBalance({ account }));
+    const ethBalance = new BigNumber(await new Dashboard.Api.AccountsService().getEthBalance({ account }));
 
     this.balances = { baseBalance, quoteBalance, ethBalance };
   }

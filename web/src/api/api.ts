@@ -143,6 +143,15 @@ export namespace Dashboard {
       request: IUnlockAccountRequest;
     }
 
+    export interface IAccountsGetTokenBalanceParams {
+      account: string;
+      tokenAddress: string;
+    }
+
+    export interface IAccountsGetEthBalanceParams {
+      account: string;
+    }
+
     export interface IBandsGetParams {
       marketId: string;
     }
@@ -212,6 +221,31 @@ export namespace Dashboard {
 
         requestParams.body = params.request;
         return this.executeRequest<void>(requestParams);
+      }
+
+      public async getTokenBalance(params: IAccountsGetTokenBalanceParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/accounts/get_token_balance`
+        };
+
+        requestParams.queryParameters = {
+          account: params.account,
+          tokenAddress: params.tokenAddress,
+        };
+        return this.executeRequest<string>(requestParams);
+      }
+
+      public async getEthBalance(params: IAccountsGetEthBalanceParams) {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/accounts/get_eth_balance`
+        };
+
+        requestParams.queryParameters = {
+          account: params.account,
+        };
+        return this.executeRequest<string>(requestParams);
       }
     }
     export class BandsService extends ApiService {
