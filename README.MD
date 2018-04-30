@@ -76,8 +76,6 @@ AMM supports programmatic band management via a local REST API which can be used
 
 ## Dashboard
 
-![Dashboard](./docs/screenshots/dashboard.png)
-
 ### Markets
 
 When you first begin, you'll need to create a new market.
