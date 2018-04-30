@@ -7,7 +7,7 @@
     "start:server": "yarn build && nodemon ./dist/server.js",
     "swagger:gen": "tsoa swagger",
     "routes:gen": "tsoa routes",
-    "generate:aqueduct:remote": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8700 --outputPath ./swagger/aqueduct-remote.ts --namespace AqueductRemote",
+    "generate:aqueduct:remote": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://aqueduct-remote:8700 --outputPath ./swagger/aqueduct-remote.ts --namespace AqueductRemote",
     "test": "rm -rf ./test-data && NODE_ENV=test mocha -t 15000 -r ts-node/register src/tests/**/*.spec.ts"
   },
   "dependencies": {

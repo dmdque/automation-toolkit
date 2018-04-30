@@ -2,7 +2,7 @@ import { Body, Delete, Get, Post, Route, Tags } from 'tsoa';
 import { config } from '../config';
 import { IMarket, IStoredMarket, marketRepository } from '../db/market-repository';
 import { IMarketStatsHistory } from '../db/market-stats-history-repository';
-import { IMarketStats, IStopMarketRequest, IValidateStopResult, MarketService } from '../services/market-service';
+import { IMarketStats, IStartMarketRequest, IStopMarketRequest, IValidateStopResult, MarketService } from '../services/market-service';
 
 @Route('markets')
 export class MarketsController {
@@ -26,10 +26,10 @@ export class MarketsController {
     return await this.marketService.create(request);
   }
 
-  @Post('start/{id}')
+  @Post('start')
   @Tags('Markets')
-  public async startMarket(id: string) {
-    return await this.marketService.start(id);
+  public async startMarket(@Body() request: IStartMarketRequest) {
+    return await this.marketService.start(request);
   }
 
   @Post('attempt_stop/{id}')

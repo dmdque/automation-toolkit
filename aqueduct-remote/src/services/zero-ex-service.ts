@@ -12,7 +12,8 @@ export class ZeroExService {
     });
   }
 
-  public async getTokenBalance(account: string, tokenAddress: string) {
+  public async getTokenBalance(tokenAddress: string) {
+    const account = await new Web3Service().getAccount();
     const balance = await this.zeroEx.token.getBalanceAsync(tokenAddress, account);
     return balance.toString();
   }

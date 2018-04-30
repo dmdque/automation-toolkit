@@ -19,10 +19,12 @@ services:
     volumes:
       - ./api/data:/app/data
       - ./api/dist:/app/dist
+      - ./api/src:/app/src
   aqueduct-remote:
     build: ./aqueduct-remote
-    ports:
-      - "8700:8700"
+    expose:
+      # DO NOT CHANGE! Aqueduct remote should not be exposed to the host, only to linked containers
+      - "8700"
     environment:
       - AQUEDUCT_API_KEY_ID
       - ETHEREUM_CHAIN
@@ -30,13 +32,12 @@ services:
       - parity
     volumes:
       - ./aqueduct-remote/dist:/app/dist
+      - ./aqueduct-remote/src:/app/src
   parity:
     build: ./parity
-    ports:
-      - "8180:8180"
-      - "8546:8546"
-      - "30303:30303"
-      - "8545:8545"
+    expose:
+      # DO NOT CHANGE! JSONRPC should not be exposed to the host, only to linked containers
+      - "8545"
     environment:
       - ETHEREUM_CHAIN
       - AQUEDUCT_API_KEY_ID

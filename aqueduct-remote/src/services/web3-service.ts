@@ -31,64 +31,35 @@ export interface INodeHealth {
 }
 
 export interface IUnlockAccountParams {
-  account: string;
   passphrase: string;
 }
 
 export class Web3Service {
   private readonly web3 = new Web3(new Web3.providers.HttpProvider(config.nodeUrl));
 
-  public async getAccounts() {
-    return new Promise<string[]>((resolve, reject) => {
-      this.web3.eth.getAccounts((err, accounts) => {
-        if (err) { return reject(err); }
-        resolve(accounts);
-      });
-    });
+  public async getAccount() {
+    const accounts = await this.getAccounts();
+
+    const account = accounts[0];
+    if (!account) {
+      throw new ServerError(`no account configured`);
+    }
+
+    return account;
   }
 
-  public async getEthBalance(account: string) {
-    return new Promise<string>((resolve, reject) => {
-      this.web3.eth.getBalance(account, (err, balance) => {
-        if (err) { return reject(err); }
-        resolve(balance.toString());
-      });
-    });
+  public async getEthBalance() {
+    const account = await this.getAccount();
+    return await this._getEthBalance(account);
   }
 
   public getWeb3() {
     return this.web3;
   }
 
-  public async unlockAccount({ account, passphrase }: IUnlockAccountParams) {
-    return new Promise((resolve, reject) => {
-      (this.web3.personal as any).unlockAccount(account, passphrase, '0x0', (err: any) => {
-        if (err) {
-          console.error(err);
-          reject(new ServerError('Could not unlock account - possibly incorrect passphrase.', 401));
-          return;
-        }
-
-        resolve();
-      });
-    });
-  }
-
   public async getParityNodeHealth(): Promise<INodeHealth> {
     try {
-      const health: IParityHealth = await request({
-        method: 'POST',
-        uri: config.nodeUrl,
-        body: {
-          method: 'parity_nodeHealth',
-          params: [],
-          id: 1,
-          jsonrpc: '2.0'
-        },
-        json: true,
-        contentType: 'application/json'
-      });
-
+      const health = await this.executeRpcCommand<IParityHealth>('parity_nodeHealth');
       if (health.result.peers.status !== 'ok'
         // we're going to say this is okay
         && health.result.peers.message !== 'You are connected to only one peer. Your node might not be reliable. Check your network connection.') {
@@ -112,5 +83,38 @@ export class Web3Service {
         error: 'Cannot connect to Parity node; please ensure that the node is running.'
       };
     }
+  }
+
+  public async executeRpcCommand<T>(method: string, params: any[] = []) {
+    return await request({
+      method: 'POST',
+      uri: config.nodeUrl,
+      body: {
+        method,
+        params,
+        id: 1,
+        jsonrpc: '2.0'
+      },
+      json: true,
+      contentType: 'application/json'
+    }) as T;
+  }
+
+  private async getAccounts() {
+    return new Promise<string[]>((resolve, reject) => {
+      this.web3.eth.getAccounts((err, accounts) => {
+        if (err) { return reject(err); }
+        resolve(accounts);
+      });
+    });
+  }
+
+  private async _getEthBalance(account: string) {
+    return new Promise<string>((resolve, reject) => {
+      this.web3.eth.getBalance(account, (err, balance) => {
+        if (err) { return reject(err); }
+        resolve(balance.toString());
+      });
+    });
   }
 }

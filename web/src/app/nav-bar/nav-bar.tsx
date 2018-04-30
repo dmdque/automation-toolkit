@@ -8,7 +8,10 @@ export class NavBar extends React.Component<INavBarProps> {
   public render() {
     return (
       <div className='nav-bar'>
-        <div className='header'>Market Maker Dashboard</div>
+        <div className='fl vc'>
+          <img src='/images/logo_dark.svg' className='logo' />
+          <div className='header'>Market Maker</div>
+        </div>
       </div>
     );
   }

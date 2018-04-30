@@ -3,9 +3,9 @@ import { BigNumber } from 'bignumber.js';
 import { Body, Post, Route, Tags } from 'tsoa';
 import { config } from '../config';
 import { ServerError } from '../server-error';
+import { Web3Service } from '../services/web3-service';
 
 export interface ILimitOrderRequest {
-  account: string;
   baseTokenSymbol: string;
   quoteTokenSymbol: string;
   expirationDate: Date;
@@ -45,8 +45,9 @@ export class TradingController {
   @Post('limit_order')
   @Tags('Trading')
   public async createLimitOrder(@Body() request: ILimitOrderRequest): Promise<IOrder> {
+    const account = await new Web3Service().getAccount();
     const {
-      account, baseTokenSymbol, quoteTokenSymbol,
+      baseTokenSymbol, quoteTokenSymbol,
       price, quantityInWei, expirationDate, side
     } = request;
 

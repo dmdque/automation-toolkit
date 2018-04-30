@@ -16,6 +16,11 @@ export interface IStopMarketRequest {
   immediateCancelation: boolean;
 }
 
+export interface IStartMarketRequest {
+  marketId: string;
+  passphrase: string;
+}
+
 export interface IValidateStopResult {
   hasActiveBands: boolean;
 }
@@ -48,7 +53,9 @@ export class MarketService {
     return await marketRepository.create(market);
   }
 
-  public async start(marketId: string): Promise<IStoredMarket> {
+  public async start({ marketId, passphrase }: IStartMarketRequest): Promise<IStoredMarket> {
+    await new AqueductRemote.Api.WalletService().unlockAccount({ request: { passphrase }});
+
     const market = await marketRepository.findOne({ _id: marketId });
     if (!market) {
       throw new ServerError(`market ${marketId} not found`, 404);
@@ -105,8 +112,7 @@ export class MarketService {
     await marketRepository.update({ _id: market._id }, market);
 
     const bands = await bandRepository.find({ marketId: market._id });
-    for (let i = 0; i < bands.length; i++) {
-      const band = bands[i];
+    for (let band of bands) {
       await this.bandService.stop(band, request.immediateCancelation);
     }
 
@@ -156,7 +162,7 @@ export class MarketService {
       throw new ServerError(`market ${marketId} not found`, 404);
     }
 
-    const { account, baseTokenSymbol, quoteTokenSymbol } = market;
+    const { baseTokenSymbol, quoteTokenSymbol } = market;
     const tokenPair = await tokenPairCache.getTokenPair({
       baseSymbol: baseTokenSymbol,
       quoteSymbol: quoteTokenSymbol,
@@ -164,9 +170,9 @@ export class MarketService {
     });
 
     const walletService = new AqueductRemote.Api.WalletService();
-    const baseBalance = (await walletService.getBalance({ account, tokenAddress: tokenPair.tokenA.address })).toString();
-    const quoteBalance = (await walletService.getBalance({ account, tokenAddress: tokenPair.tokenB.address })).toString();
-    const ethBalance = (await walletService.getEthBalance({ account })).toString();
+    const baseBalance = (await walletService.getBalance({ tokenAddress: tokenPair.tokenA.address })).toString();
+    const quoteBalance = (await walletService.getBalance({ tokenAddress: tokenPair.tokenB.address })).toString();
+    const ethBalance = (await walletService.getEthBalance()).toString();
     const bands = await bandRepository.find({ marketId: market._id });
 
     let openQuoteAmount = new BigNumber(0);

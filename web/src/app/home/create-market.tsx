@@ -10,7 +10,6 @@ import { toBaseUnitAmount, toUnitAmount } from 'common/utils/unit-amount';
 import { autorun, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { accountStore } from 'stores/account-store';
 import { tokenPairStore } from 'stores/token-pair-store';
 import { ITokenReserveParams, TokenReserveInput } from './token-reserve-input';
 
@@ -28,7 +27,6 @@ interface IBalances {
 @observer
 export class CreateMarket extends React.Component<ICreateMarketProps> {
   @observable private selectedTokenPair?: Dashboard.Api.ITokenPair;
-  @observable private selectedAccount?: string;
   @observable private label = '';
   @observable private baseReserve?: ITokenReserveParams;
   @observable private quoteReserve?: ITokenReserveParams;
@@ -39,8 +37,8 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     super(props);
 
     autorun(() => {
-      if (this.selectedTokenPair && this.selectedAccount) {
-        this.loadBalances(this.selectedTokenPair, this.selectedAccount);
+      if (this.selectedTokenPair) {
+        this.loadBalances(this.selectedTokenPair);
       }
     });
   }
@@ -57,12 +55,6 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
             <option value='' selected={true} disabled={true} hidden={true}>Select Token Pair</option>
             {tokenPairStore.tokenPairs.map((tp, i) => (
               <option key={i} value={i}>{tp.tokenA.symbol}/{tp.tokenB.symbol}</option>
-            ))}
-          </Select>
-          <Select label='Service Account' onChange={this.onAccountChange} required={true}>
-            <option value='' selected={true} disabled={true} hidden={true}>Select Service Account</option>
-            {accountStore.accounts.filter(a => !a.locked).map(a => (
-              <option key={a.account} value={a.account}>{a.account}</option>
             ))}
           </Select>
           {this.selectedTokenPair && this.balances && <div>
@@ -97,10 +89,6 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     }
   }
 
-  private onAccountChange: React.ChangeEventHandler<HTMLSelectElement> = event => {
-    this.selectedAccount = event.target.value;
-  }
-
   private onTokenAReserveChange = (params?: ITokenReserveParams) => {
     this.baseReserve = params;
   }
@@ -128,7 +116,6 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
           label: this.label,
           baseTokenSymbol: tokenA.symbol,
           quoteTokenSymbol: tokenB.symbol,
-          account: this.selectedAccount as string,
           minBaseAmount: baseRes.min,
           initialBaseAmount: baseRes.initial,
           minQuoteAmount: quoteRes.min,
@@ -147,15 +134,15 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
   }
 
   private isValid() {
-    return !!(this.label && this.selectedTokenPair && this.selectedAccount && this.baseReserve && this.quoteReserve && this.minEthBalanceError().value);
+    return !!(this.label && this.selectedTokenPair && this.baseReserve && this.quoteReserve && this.minEthBalanceError().value);
   }
 
-  private async loadBalances(tokenPair: Dashboard.Api.ITokenPair, account: string) {
-    const getBalance = async (tokenAddress: string) => await new Dashboard.Api.AccountsService().getTokenBalance({ account, tokenAddress });
+  private async loadBalances(tokenPair: Dashboard.Api.ITokenPair) {
+    const getBalance = async (tokenAddress: string) => await new Dashboard.Api.AccountsService().getTokenBalance({ tokenAddress });
 
     const baseBalance = new BigNumber(await getBalance(tokenPair.tokenA.address));
     const quoteBalance = new BigNumber(await getBalance(tokenPair.tokenB.address));
-    const ethBalance = new BigNumber(await new Dashboard.Api.AccountsService().getEthBalance({ account }));
+    const ethBalance = new BigNumber(await new Dashboard.Api.AccountsService().getEthBalance());
 
     this.balances = { baseBalance, quoteBalance, ethBalance };
   }

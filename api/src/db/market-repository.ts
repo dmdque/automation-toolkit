@@ -24,7 +24,6 @@ export interface IMarket {
   quoteTokenSymbol: string;
   initialQuoteAmount: string;
   minQuoteAmount: string;
-  account: string;
   minEthAmount: string;
   active?: boolean;
 }

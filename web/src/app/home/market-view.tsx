@@ -10,6 +10,7 @@ import { marketStore } from 'stores/market-store';
 import { tokenPairStore } from 'stores/token-pair-store';
 import { BalanceHistory } from './balance-history';
 import { Bands } from './bands/bands';
+import { EnterPassphraseModal } from './enter-passphrase-modal';
 import { MarketLogViewer } from './log-viewer/market-log-viewer';
 import { MarketStats } from './market-stats';
 import './market-view.scss';
@@ -32,6 +33,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
   @observable private selectStopBehaviorProps?: ISelectStopBehaviorProps;
   @observable private marketUrl = '';
   @observable private isViewingHistory = false;
+  @observable private confirmStart = false;
 
   constructor(public readonly props: IMarketViewProps) {
     super(props);
@@ -62,7 +64,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
         <div className='fl sb market-view-header'>
           <div className='fl'>
             <h1>{this.market.label}</h1>
-            <div className={`control start fl vc ${!this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStart(this.market)}>
+            <div className={`control start fl vc ${!this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStart}>
               <i className='fa fa-play' />
               <span>Start</span>
             </div>
@@ -96,6 +98,8 @@ export class MarketView extends React.Component<IMarketViewProps> {
         {this.isViewingHistory && <BalanceHistory marketId={this.market._id} tokenPair={tokenPair} onClose={this.onCloseBalanceHistory} />}
         {this.isViewingLogs && <MarketLogViewer onClose={this.onCloseViewLogs} marketId={this.market._id} />}
         {this.selectStopBehaviorProps && <SelectStopBehavior {...this.selectStopBehaviorProps} />}
+        {this.confirmStart && <EnterPassphraseModal message='Enter your account passphrase to start the market'
+          onClose={this.onCloseEnterPassphrase} onSubmit={this.startMarket(this.market)} submitText='Start Market' />}
       </div>
     );
   }
@@ -130,9 +134,14 @@ export class MarketView extends React.Component<IMarketViewProps> {
     }
   }
 
-  private onStart = (market: Dashboard.Api.IStoredMarket) => async () => {
+  private readonly startMarket = (market: Dashboard.Api.IStoredMarket) => async (passphrase: string) => {
     try {
-      await new Dashboard.Api.MarketsService().startMarket({ id: market._id });
+      await new Dashboard.Api.MarketsService().startMarket({
+        request: {
+          marketId: market._id,
+          passphrase
+        }
+      });
       await this.refresh();
     } catch (err) {
       flashMessageStore.addMessage({
@@ -185,4 +194,6 @@ export class MarketView extends React.Component<IMarketViewProps> {
   private readonly onCloseViewLogs = () => this.isViewingLogs = false;
   private readonly onViewHistory = () => this.isViewingHistory = true;
   private readonly onCloseBalanceHistory = () => this.isViewingHistory = false;
+  private readonly onCloseEnterPassphrase = () => this.confirmStart = false;
+  private onStart = () => this.confirmStart = true;
 }

@@ -2,10 +2,12 @@ import { Dashboard } from 'api/api';
 import { observable } from 'mobx';
 
 export class AccountStore {
-  @observable public accounts: Dashboard.Api.IStoredParityAccount[];
+  @observable public account?: string;
 
   public async initialize() {
-    this.accounts = await new Dashboard.Api.AccountsService().get();
+    try {
+      this.account = await new Dashboard.Api.AccountsService().getAccount();
+    } catch { return; }
   }
 }
 

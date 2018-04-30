@@ -3,7 +3,6 @@ import { logRepository } from '../../db/log-repository';
 import { marketRepository } from '../../db/market-repository';
 import { marketStatsHistoryRepository } from '../../db/market-stats-history-repository';
 import { orderRepository } from '../../db/order-repository';
-import { parityAccountRepository } from '../../db/parity-account-repository';
 import { Repository } from '../../db/repository';
 
 export const clearDatabases = async () => {
@@ -12,8 +11,7 @@ export const clearDatabases = async () => {
     logRepository,
     marketRepository,
     marketStatsHistoryRepository,
-    orderRepository,
-    parityAccountRepository
+    orderRepository
   ];
 
   for (let i = 0; i < repos.length; i++) {

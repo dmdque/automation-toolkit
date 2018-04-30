@@ -69,7 +69,7 @@ export class BandService {
       throw new ServerError(`market ${band.marketId} doesn't exist`, 404);
     }
 
-    const { account, baseTokenSymbol, quoteTokenSymbol } = market;
+    const { baseTokenSymbol, quoteTokenSymbol } = market;
     const tokenPair = await this.tpCache.getTokenPair({
       baseSymbol: baseTokenSymbol,
       quoteSymbol: quoteTokenSymbol,
@@ -158,6 +158,8 @@ export class BandService {
                   bandId: band._id,
                   message: `band ${band._id} canceled order due to price changes ${order.id} w/ tx ${txHash}`
                 });
+
+                console.log(`band ${band._id} canceled order due to price changes ${order.id} w/ tx ${txHash}`);
 
                 order.valid = false;
                 order.bound = false;
@@ -248,7 +250,6 @@ export class BandService {
     try {
       const order = await this.tradingService.createLimitOrder({
         request: {
-          account,
           baseTokenSymbol,
           quoteTokenSymbol,
           price: adjustedPrice.toString(),
@@ -277,7 +278,9 @@ export class BandService {
         const order = existingOrders[i];
         if (immediateCancelation) {
           try {
+            console.log('starting cancelation...');
             const txHash = await this.tradingService.cancelOrder({ orderHash: order.orderHash });
+            console.log('finished cancelation...');
             this.logService.addBandLog({
               severity: 'info',
               bandId: band._id,
@@ -326,21 +329,20 @@ export class BandService {
     this.logService.addMarketLog({
       severity: 'success',
       marketId: band.marketId,
-      message: `band ${bandId} removed from market`
+      message: `band ${bandId} removed from; market`
     });
   }
 
   public async getAvailableBalance({ side, tokenPair, market }: IGetLimitOrderQuantityParams) {
-    const account = market.account;
     if (side === 'buy') {
-      const balance = new BigNumber(await this.walletService.getBalance({ account, tokenAddress: tokenPair.tokenB.address }));
+      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenB.address }));
       if (balance.lessThan(market.minQuoteAmount)) {
         throw new Error(`balance is lower than minimum quote token amount: ${balance.toString()}/${market.minQuoteAmount}`);
       }
 
       return balance.lessThan(market.initialQuoteAmount) ? balance : new BigNumber(market.initialQuoteAmount);
     } else {
-      const balance = new BigNumber(await this.walletService.getBalance({ account, tokenAddress: tokenPair.tokenA.address }));
+      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenA.address }));
       if (balance.lessThan(market.minBaseAmount)) {
         throw new Error(`balance is lower than minimum base token amount: ${balance.toString()}/${market.minBaseAmount}`);
       }

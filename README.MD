@@ -1,6 +1,6 @@
 # Overview
 
-TODO
+The ERC dEX Automated Market Maker (AMM) allows traders to create custom trading strategies that will be executed autonomously. Using the dashboard (or a scripting language of your choice, described below), the user creates **Markets** (e.g. ZRX/WETH), then adds **Bands** to that market that specify desired price spreads. When a **Market** is active, **Bands** will deploy and cancel ERC dEX **Orders** in accordinance with the user defined strategy.
 
 # Installation
 
@@ -15,8 +15,7 @@ TODO
 Configuration consists of a few basic steps:
 - Defining environment variables
 - Starting the application
-- Creating/importing wallet(s)
-- Unlocking wallet(s)
+- Import Wallet
 
 ## Defining Environment Variables
 
@@ -30,27 +29,13 @@ The application reads from a .env file at the root of the project or environment
 - Run `docker-compose up --build` (probably `sudo docker-compose up --build` on Linux) from the root directory. This is creating the environment from source, so it will probably take several minutes.
 - Once the environment bootstrapping process is complete, visit http://127.0.01:8663 to view the dashboard
 
-## Creating/importing Ethereum Wallet(s)
+## Importing Ethereum Wallet
 
-In order to create new markets, an Ethereum account must be linked. When first visiting the dashboard, you should be presented to a prompt to create an account:
+In order to create new markets, an Ethereum account must be linked. When first visiting the dashboard, you should be presented to a prompt to import an account:
 
 ![Account Modal](./docs/screenshots/account-modal.png)
 
-Follow the link/step-by-step guide to create a new wallet or to import an existing wallet.
-
-### Generating signing token
-
-Depending on your platform, you may need to generate a new parity signing token to access the dashboard. This is a security measure to verify that the user is authorized to access the dashboard.
-
-## Unlocking Wallet
-
-To allow automated trading, the wallet must be unlocked in Parity. Unlocking allows transactions/signing to occur without user confirmation. Once an account has been added, the dashboard should automatically prompt you to unlock your account:
-
-![Unlock](./docs/screenshots/unlock-account.png)
-
 # Concepts
-
-Automated Market Maker (AMM) allows traders to create custom trading strategies that will be executed autonomously. Using the dashboard (or a scripting language of your choice, described below), the user creates **Markets** (e.g. ZRX/WETH), then adds **Bands** to that market that specify desired price spreads. When a **Market** is active, **Bands** will deploy and cancel ERC dEX **Orders** in accordinance with the user defined strategy.
 
 A **Market** describes a persistent configuration that facilates the buying and selling of a token pair. An example of a market is "ZRX/WETH", which means that ZRX is being bought and sold in exchange for WETH. A market is created with parameters that describe the range and amount of assets that are available for trading. At a high level, a **Market** is responsible for maintaining a trader's overall desired position in the market as prices change.
 
@@ -93,4 +78,39 @@ AMM supports programmatic band management via a local REST API which can be used
 
 ![Dashboard](./docs/screenshots/dashboard.png)
 
-TODO
+### Markets
+
+When you first begin, you'll need to create a new market.
+
+![Create Market](./docs/screenshots/create-market.png)
+
+- **Label**: Unique Identifier of the Market
+- **Token Pair**: Assets being traded
+- **Parameters**
+    - **Initial Amount**: This is the initial amount available for trading. Orders will be allocated to match this amount **or** the available token balance, whichever is higher.
+    - **Minimum Amount**: This is the minimum amount of an asset that should be reserved. If the asset amount dips below this amount, the market will be paused and will require intervention from a market operator.
+    - **Minimum Ether Amount**: This is the minimum amount of Ether that should be contained in the account at any time. If the available about dips below this amount, the market will be paused and will require intervention from a market operator.
+
+### Bands
+
+By default, a market will have no bands; the first step in actually deploying a market is to create bands that specify desirable positions.
+
+![Create Bands](./docs/screenshots/create-bands.gif)
+
+- **Spread BPS**: The spread is defined as the different between the market price on a side (buy or sell) and the midpoint price or market price. 1 bp (basis point) = .1% = .0001
+- **Tolerance BPS**: The tolerance specifies how far in BPS the market price can move before an order is considered out of band
+- **Units** Units represents how much a band consumes of the Total Market Commitment (TMC). A **Unit** is not related in any way to a token unit (e.g. 200 ZRX) - units are purely relative.
+- **Mininum Units** Minimum unit commitment for a particular band; if deployed orders are filled below this amount, additional orders will be created to keep the band fully committed
+- **Duration** Expiration period of deployed orders in seconds. Limited to 300-1200 seconds (5-20 minutes).
+
+### Starting/Stopping
+
+By default, a market is in the "stopped" state, meaning that orders are not being deployed. To begin order deployment and automated position maintenance, click the "Start" button. Verify that the orders have been created by viewing the market in ERC dEX or by viewing band logs:
+
+![Start Market](./docs/screenshots/start-market.gif)
+
+To stop a market, click the "Stop Market" button. If there are deployed orders, the user should decide whether to cancel them immediately or to allow them to expire.
+
+![Stop Market](./docs/screenshots/stop-market.gif)
+
+Markets can be deleted with the "Delete" button; the Market must be stopped before deletion is possible.

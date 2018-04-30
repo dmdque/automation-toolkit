@@ -1,4 +1,3 @@
-import { parityAccountRepository } from '../db/parity-account-repository';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 
 const sleep = (ms: number) => {
@@ -13,22 +12,10 @@ export class PendingAqueductService {
   public async waitForAqueductRemote() {
     while (true) {
       try {
-        const accounts = await this.walletService.getAccounts();
-        for (let account of accounts) {
-          const existingAccount = await parityAccountRepository.findOne({ account });
-          if (existingAccount) {
-            continue;
-          }
-
-          await parityAccountRepository.create({
-            account,
-            locked: true
-          });
-        }
-
+        await this.walletService.getNetworkId();
         console.log('aqueduct remote ready');
         return;
-      } catch {
+      } catch (err) {
         console.error('waiting for aqueduct remote to start...');
         await sleep(5000);
       }

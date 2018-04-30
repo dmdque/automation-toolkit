@@ -7,17 +7,10 @@ import { MarketsController } from './controllers/markets-controller';
 import { TokenPairsController } from './controllers/token-pairs-controller';
 
 const models: TsoaRoute.Models = {
-  "IStoredParityAccount": {
+  "IImportAccountRequest": {
     "properties": {
-      "account": { "dataType": "string", "required": true },
-      "locked": { "dataType": "boolean", "required": true },
-      "_id": { "dataType": "string", "required": true },
-    },
-  },
-  "IUnlockAccountRequest": {
-    "properties": {
-      "account": { "dataType": "string", "required": true },
       "passphrase": { "dataType": "string", "required": true },
+      "key": { "dataType": "string", "required": true },
     },
   },
   "IStoredBand": {
@@ -72,7 +65,6 @@ const models: TsoaRoute.Models = {
       "quoteTokenSymbol": { "dataType": "string", "required": true },
       "initialQuoteAmount": { "dataType": "string", "required": true },
       "minQuoteAmount": { "dataType": "string", "required": true },
-      "account": { "dataType": "string", "required": true },
       "minEthAmount": { "dataType": "string", "required": true },
       "active": { "dataType": "boolean" },
       "_id": { "dataType": "string", "required": true },
@@ -87,9 +79,14 @@ const models: TsoaRoute.Models = {
       "quoteTokenSymbol": { "dataType": "string", "required": true },
       "initialQuoteAmount": { "dataType": "string", "required": true },
       "minQuoteAmount": { "dataType": "string", "required": true },
-      "account": { "dataType": "string", "required": true },
       "minEthAmount": { "dataType": "string", "required": true },
       "active": { "dataType": "boolean" },
+    },
+  },
+  "IStartMarketRequest": {
+    "properties": {
+      "marketId": { "dataType": "string", "required": true },
+      "passphrase": { "dataType": "string", "required": true },
     },
   },
   "IValidateStopResult": {
@@ -165,13 +162,13 @@ export function RegisterRoutes(app: any) {
       const controller = new AccountsController();
 
 
-      const promise = controller.getAccounts.apply(controller, validatedArgs);
+      const promise = controller.getAccount.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/api/accounts/unlock_account',
+  app.post('/api/accounts/import',
     function(request: any, response: any, next: any) {
       const args = {
-        request: { "in": "body", "name": "request", "required": true, "ref": "IUnlockAccountRequest" },
+        request: { "in": "body", "name": "request", "required": true, "ref": "IImportAccountRequest" },
       };
 
       let validatedArgs: any[] = [];
@@ -184,13 +181,12 @@ export function RegisterRoutes(app: any) {
       const controller = new AccountsController();
 
 
-      const promise = controller.unlockAccount.apply(controller, validatedArgs);
+      const promise = controller.importAccount.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
   app.get('/api/accounts/get_token_balance',
     function(request: any, response: any, next: any) {
       const args = {
-        account: { "in": "query", "name": "account", "required": true, "dataType": "string" },
         tokenAddress: { "in": "query", "name": "tokenAddress", "required": true, "dataType": "string" },
       };
 
@@ -210,7 +206,6 @@ export function RegisterRoutes(app: any) {
   app.get('/api/accounts/get_eth_balance',
     function(request: any, response: any, next: any) {
       const args = {
-        account: { "in": "query", "name": "account", "required": true, "dataType": "string" },
       };
 
       let validatedArgs: any[] = [];
@@ -396,10 +391,10 @@ export function RegisterRoutes(app: any) {
       const promise = controller.create.apply(controller, validatedArgs);
       promiseHandler(controller, promise, response, next);
     });
-  app.post('/api/markets/start/:id',
+  app.post('/api/markets/start',
     function(request: any, response: any, next: any) {
       const args = {
-        id: { "in": "path", "name": "id", "required": true, "dataType": "string" },
+        request: { "in": "body", "name": "request", "required": true, "ref": "IStartMarketRequest" },
       };
 
       let validatedArgs: any[] = [];

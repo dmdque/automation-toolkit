@@ -13,15 +13,9 @@ export namespace Dashboard {
    */
   export namespace Api {
 
-    export interface IStoredParityAccount {
-      account: string;
-      locked: boolean;
-      _id: string;
-    }
-
-    export interface IUnlockAccountRequest {
-      account: string;
+    export interface IImportAccountRequest {
       passphrase: string;
+      key: string;
     }
 
     export interface IStoredBand {
@@ -70,7 +64,6 @@ export namespace Dashboard {
       quoteTokenSymbol: string;
       initialQuoteAmount: string;
       minQuoteAmount: string;
-      account: string;
       minEthAmount: string;
       active?: boolean;
       _id: string;
@@ -84,9 +77,13 @@ export namespace Dashboard {
       quoteTokenSymbol: string;
       initialQuoteAmount: string;
       minQuoteAmount: string;
-      account: string;
       minEthAmount: string;
       active?: boolean;
+    }
+
+    export interface IStartMarketRequest {
+      marketId: string;
+      passphrase: string;
     }
 
     export interface IValidateStopResult {
@@ -139,17 +136,12 @@ export namespace Dashboard {
     }
 
 
-    export interface IAccountsUnlockAccountParams {
-      request: IUnlockAccountRequest;
+    export interface IAccountsImportAccountParams {
+      request: IImportAccountRequest;
     }
 
     export interface IAccountsGetTokenBalanceParams {
-      account: string;
       tokenAddress: string;
-    }
-
-    export interface IAccountsGetEthBalanceParams {
-      account: string;
     }
 
     export interface IBandsGetParams {
@@ -185,7 +177,7 @@ export namespace Dashboard {
     }
 
     export interface IMarketsStartMarketParams {
-      id: string;
+      request: IStartMarketRequest;
     }
 
     export interface IMarketsValidateStopParams {
@@ -205,18 +197,18 @@ export namespace Dashboard {
     }
     export class AccountsService extends ApiService {
 
-      public async get() {
+      public async getAccount() {
         const requestParams: IRequestParams = {
           method: 'GET',
           url: `${baseApiUrl}/api/accounts`
         };
-        return this.executeRequest<IStoredParityAccount[]>(requestParams);
+        return this.executeRequest<string>(requestParams);
       }
 
-      public async unlockAccount(params: IAccountsUnlockAccountParams) {
+      public async importAccount(params: IAccountsImportAccountParams) {
         const requestParams: IRequestParams = {
           method: 'POST',
-          url: `${baseApiUrl}/api/accounts/unlock_account`
+          url: `${baseApiUrl}/api/accounts/import`
         };
 
         requestParams.body = params.request;
@@ -230,20 +222,15 @@ export namespace Dashboard {
         };
 
         requestParams.queryParameters = {
-          account: params.account,
           tokenAddress: params.tokenAddress,
         };
         return this.executeRequest<string>(requestParams);
       }
 
-      public async getEthBalance(params: IAccountsGetEthBalanceParams) {
+      public async getEthBalance() {
         const requestParams: IRequestParams = {
           method: 'GET',
           url: `${baseApiUrl}/api/accounts/get_eth_balance`
-        };
-
-        requestParams.queryParameters = {
-          account: params.account,
         };
         return this.executeRequest<string>(requestParams);
       }
@@ -339,8 +326,10 @@ export namespace Dashboard {
       public async startMarket(params: IMarketsStartMarketParams) {
         const requestParams: IRequestParams = {
           method: 'POST',
-          url: `${baseApiUrl}/api/markets/start/${params.id}`
+          url: `${baseApiUrl}/api/markets/start`
         };
+
+        requestParams.body = params.request;
         return this.executeRequest<IStoredMarket>(requestParams);
       }
 

@@ -15,7 +15,6 @@ export const marketFixture = fixture<IMarketFixtureParams, IStoredMarket>(async 
   return await marketRepository.create({
     baseTokenSymbol: ScamToken.symbol,
     quoteTokenSymbol: WackToken.symbol,
-    account: 'account-address',
     label: m.label,
     initialBaseAmount: m.initialBaseAmount,
     initialQuoteAmount: m.initialQuoteAmount,
