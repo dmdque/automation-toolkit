@@ -41,6 +41,13 @@ const models: TsoaRoute.Models = {
             "side": { "dataType": "string", "required": true },
         },
     },
+    "ICancelReceipt": {
+        "properties": {
+            "gasUsed": { "dataType": "double", "required": true },
+            "cumulativeGasUsed": { "dataType": "double", "required": true },
+            "status": { "dataType": "double", "required": true },
+        },
+    },
     "IImportAccountRequest": {
         "properties": {
             "key": { "dataType": "string", "required": true },
@@ -97,6 +104,25 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.cancelOrder.apply(controller, validatedArgs);
+            promiseHandler(controller, promise, response, next);
+        });
+    app.post('/api/trading/cancel_receipt/:txHash',
+        function(request: any, response: any, next: any) {
+            const args = {
+                txHash: { "in": "path", "name": "txHash", "required": true, "dataType": "string" },
+            };
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new TradingController();
+
+
+            const promise = controller.getCancelReceipt.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
     app.get('/api/wallet/account',

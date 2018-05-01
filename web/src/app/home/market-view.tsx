@@ -14,6 +14,7 @@ import { EnterPassphraseModal } from './enter-passphrase-modal';
 import { MarketLogViewer } from './log-viewer/market-log-viewer';
 import { MarketStats } from './market-stats';
 import './market-view.scss';
+import { ReportsModal } from './reports/reports-modal';
 import { ISelectStopBehaviorProps, SelectStopBehavior } from './select-stop-behavior';
 
 interface IMarketViewProps {
@@ -33,6 +34,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
   @observable private selectStopBehaviorProps?: ISelectStopBehaviorProps;
   @observable private marketUrl = '';
   @observable private isViewingHistory = false;
+  @observable private isViewingReports = false;
   @observable private confirmStart = false;
 
   constructor(public readonly props: IMarketViewProps) {
@@ -80,6 +82,10 @@ export class MarketView extends React.Component<IMarketViewProps> {
               <i className='fa fa-list' />
               <span>Logs</span>
             </div>
+            <div className={`control fl vc`} onClick={this.onViewReports}>
+              <i className='fa fa-book' />
+              <span>Reports</span>
+            </div>
             <a className={`control fl vc`} href={this.marketUrl} target='_blank'>
               <i className='fa fa-external-link' />
               <span>Live Market</span>
@@ -95,6 +101,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
         </div>
         <MarketStats tokenPair={tokenPair} market={this.market} />
         <Bands tokenPair={tokenPair} marketId={this.market._id} />
+        {this.isViewingReports && <ReportsModal marketId={this.market._id} onClose={this.onCloseReports} />}
         {this.isViewingHistory && <BalanceHistory marketId={this.market._id} tokenPair={tokenPair} onClose={this.onCloseBalanceHistory} />}
         {this.isViewingLogs && <MarketLogViewer onClose={this.onCloseViewLogs} marketId={this.market._id} />}
         {this.selectStopBehaviorProps && <SelectStopBehavior {...this.selectStopBehaviorProps} />}
@@ -193,7 +200,9 @@ export class MarketView extends React.Component<IMarketViewProps> {
   private readonly onViewLogs = () => this.isViewingLogs = true;
   private readonly onCloseViewLogs = () => this.isViewingLogs = false;
   private readonly onViewHistory = () => this.isViewingHistory = true;
+  private readonly onViewReports = () => this.isViewingReports = true;
   private readonly onCloseBalanceHistory = () => this.isViewingHistory = false;
   private readonly onCloseEnterPassphrase = () => this.confirmStart = false;
+  private readonly onCloseReports = () => this.isViewingReports = false;
   private onStart = () => this.confirmStart = true;
 }

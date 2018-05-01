@@ -4,6 +4,7 @@ import { Body, Post, Route, Tags } from 'tsoa';
 import { config } from '../config';
 import { ServerError } from '../server-error';
 import { Web3Service } from '../services/web3-service';
+import { ICancelReceipt, ZeroExService } from '../services/zero-ex-service';
 
 export interface ILimitOrderRequest {
   baseTokenSymbol: string;
@@ -76,5 +77,11 @@ export class TradingController {
       nodeUrl: config.nodeUrl,
       orderHash
     }).execute();
+  }
+
+  @Post('cancel_receipt/{txHash}')
+  @Tags('Trading')
+  public async getCancelReceipt(txHash: string): Promise<ICancelReceipt> {
+    return await new ZeroExService().getCancelReceipt(txHash);
   }
 }

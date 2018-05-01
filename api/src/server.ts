@@ -13,6 +13,7 @@ import './controllers/bands-controller';
 import './controllers/logs-controller';
 import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
+import { reportRoutes } from './report-routes';
 import { RegisterRoutes } from './routes';
 import { DefaultPriceFeed } from './services/default-price-feed';
 import { PendingAqueductService } from './services/pending-aqueduct-service';
@@ -50,6 +51,7 @@ Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
   });
 
   RegisterRoutes(app);
+  reportRoutes(app);
 
   // It's important that this come after the main routes are registered
   app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -22,7 +22,7 @@ export class EnterPassphraseModal extends React.Component<IEnterPassphraseModalP
         <Form onSubmit={this.onSubmit}>
           <p>{this.props.message}</p>
           <TextInput type='password' label='Passphrase' placeholder='Passphrase' minLength={6}
-            onChange={this.onPassphraseChange} value={this.passphrase} required={true} />
+            onChange={this.onPassphraseChange} value={this.passphrase} required={true} autoFocus={true} />
 
           <div>
             <button className='button primary fw' type='submit' disabled={!this.passphrase}>{this.props.submitText}</button>

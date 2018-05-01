@@ -11,6 +11,7 @@ import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { getAbsoluteSpread } from '../utils/conversion';
 import { getOrderPrice } from '../utils/order-utils';
 import { ILogService, LogService } from './log-service';
+import { OrderService } from './order-service';
 import { PriceFeed } from './price-feed';
 
 export interface IGetLimitOrderQuantityParams {
@@ -153,6 +154,7 @@ export class BandService {
             if (status === 'loss-risk') {
               try {
                 const txHash = await this.tradingService.cancelOrder({ orderHash: order.orderHash });
+                await this.logService.addCancelLog({ txHash, order, marketId: band.marketId });
                 await this.logService.addBandLog({
                   severity: 'info',
                   bandId: band._id,
@@ -271,37 +273,8 @@ export class BandService {
     }
   }
 
-  public async stop(band: IStoredBand, immediateCancelation: boolean) {
-    const existingOrders = await this.orderRepo.find({ bandId: band._id, bound: true });
-    if (existingOrders && existingOrders.length > 0) {
-      for (let i = 0; i < existingOrders.length; i++) {
-        const order = existingOrders[i];
-        if (immediateCancelation) {
-          try {
-            console.log('starting cancelation...');
-            const txHash = await this.tradingService.cancelOrder({ orderHash: order.orderHash });
-            console.log('finished cancelation...');
-            this.logService.addBandLog({
-              severity: 'info',
-              bandId: band._id,
-              message: `band ${band._id} canceled order ${order.id} w/ tx ${txHash}`
-            });
-            order.valid = false;
-          } catch (err) {
-            this.logService.addBandLog({
-              severity: 'critical',
-              bandId: band._id,
-              message: `band ${band._id} failed to cancel order ${order.id}: ${err.message}`
-            });
-          }
-        }
-
-        order.bound = false;
-        await this.orderRepo.update({ id: order.id }, order);
-      }
-    }
-
-    this.logService.addBandLog({
+  public async stop(band: IStoredBand) {
+    await this.logService.addBandLog({
       severity: 'success',
       bandId: band._id,
       message: `band ${band._id} stopped`
@@ -322,14 +295,18 @@ export class BandService {
     }
 
     if (immediateCancelation) {
-      await this.stop(band, true);
+      const orders = await this.orderRepo.find({ bandId, valid: true });
+      for (let order of orders) {
+        await new OrderService().cancelOrder(order);
+      }
     }
 
+    await this.stop(band);
     await this.bandRepo.delete({ _id: band._id });
-    this.logService.addMarketLog({
+    await this.logService.addMarketLog({
       severity: 'success',
       marketId: band.marketId,
-      message: `band ${bandId} removed from; market`
+      message: `band ${bandId} removed from market`
     });
   }
 

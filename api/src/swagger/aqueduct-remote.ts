@@ -48,6 +48,12 @@ export namespace AqueductRemote {
       side: string;
     }
 
+    export interface ICancelReceipt {
+      gasUsed: number;
+      cumulativeGasUsed: number;
+      status: number;
+    }
+
     export interface IImportAccountRequest {
       key: string;
       passphrase: string;
@@ -71,6 +77,10 @@ export namespace AqueductRemote {
       orderHash: string;
     }
 
+    export interface ITradingGetCancelReceiptParams {
+      txHash: string;
+    }
+
     export interface IWalletImportAccountParams {
       request: IImportAccountRequest;
     }
@@ -85,6 +95,7 @@ export namespace AqueductRemote {
     export interface ITradingService {
       createLimitOrder(params: ITradingCreateLimitOrderParams): Promise<IOrder>;
       cancelOrder(params: ITradingCancelOrderParams): Promise<string>;
+      getCancelReceipt(params: ITradingGetCancelReceiptParams): Promise<ICancelReceipt>;
     }
 
     export class TradingService extends ApiService implements ITradingService {
@@ -105,6 +116,14 @@ export namespace AqueductRemote {
           url: `${baseApiUrl}/api/trading/cancel_order/${params.orderHash}`
         };
         return this.executeRequest<string>(requestParams);
+      }
+
+      public async getCancelReceipt(params: ITradingGetCancelReceiptParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/trading/cancel_receipt/${params.txHash}`
+        };
+        return this.executeRequest<ICancelReceipt>(requestParams);
       }
     }
     export interface IWalletService {

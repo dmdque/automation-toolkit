@@ -10,6 +10,7 @@ import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { toUnitAmount } from '../utils/conversion';
 import { BandService } from './band-service';
 import { LogService } from './log-service';
+import { OrderService } from './order-service';
 
 export interface IStopMarketRequest {
   marketId: string;
@@ -54,7 +55,7 @@ export class MarketService {
   }
 
   public async start({ marketId, passphrase }: IStartMarketRequest): Promise<IStoredMarket> {
-    await new AqueductRemote.Api.WalletService().unlockAccount({ request: { passphrase }});
+    await new AqueductRemote.Api.WalletService().unlockAccount({ request: { passphrase } });
 
     const market = await marketRepository.findOne({ _id: marketId });
     if (!market) {
@@ -113,7 +114,11 @@ export class MarketService {
 
     const bands = await bandRepository.find({ marketId: market._id });
     for (let band of bands) {
-      await this.bandService.stop(band, request.immediateCancelation);
+      await this.bandService.stop(band);
+    }
+
+    if (request.immediateCancelation) {
+      await this.cancelMarketOrders(market._id);
     }
 
     this.logService.addMarketLog({
@@ -242,5 +247,14 @@ export class MarketService {
         key: 'dateCreated'
       }
     });
+  }
+
+  private async cancelMarketOrders(marketId: string) {
+    const existingOrders = await orderRepository.find({ marketId, valid: true });
+    if (existingOrders && existingOrders.length > 0) {
+      for (let order of existingOrders) {
+        await new OrderService().cancelOrder(order);
+      }
+    }
   }
 }

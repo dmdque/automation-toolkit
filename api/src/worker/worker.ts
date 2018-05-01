@@ -2,6 +2,7 @@ import { bandRepository } from '../db/band-repository';
 import { marketRepository } from '../db/market-repository';
 import { BandService } from '../services/band-service';
 import { MarketService } from '../services/market-service';
+import { CancellationWatcher } from './cancellation-watcher';
 
 export class Worker {
   private readonly bandService = new BandService();
@@ -10,6 +11,7 @@ export class Worker {
   public async start() {
     this.watchBands();
     this.watchMarketStats();
+    new CancellationWatcher().start();
   }
 
   private async watchBands() {

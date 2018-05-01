@@ -10,7 +10,6 @@ export class NavBar extends React.Component<INavBarProps> {
       <div className='nav-bar'>
         <div className='fl vc'>
           <img src='/images/logo_dark.svg' className='logo' />
-          <div className='header'>Market Maker</div>
         </div>
       </div>
     );
