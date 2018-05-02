@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
-import { IOrder } from '../db/order-repository';
+import { ITokenPair } from '../db/market-repository';
+import { IOrder, IStoredOrder } from '../db/order-repository';
 
 export interface IGetOrderPriceParams {
   order: IOrder;
@@ -26,7 +27,7 @@ export interface IGetOrderAttributesParams {
 }
 
 // TODO: This name is not good
-export const getOrderAttributes = ({ side, quantityInWei, price  }: IGetOrderAttributesParams) => {
+export const getOrderAttributes = ({ side, quantityInWei, price }: IGetOrderAttributesParams) => {
   if (side === 'buy') {
     const takerTokenAmount = quantityInWei;
     return {
@@ -40,4 +41,8 @@ export const getOrderAttributes = ({ side, quantityInWei, price  }: IGetOrderAtt
       takerTokenAmount: makerTokenAmount.times(price).round()
     };
   }
+};
+
+export const getOrderSide = ({ order, tokenPair }: { order: IStoredOrder; tokenPair: ITokenPair; }) => {
+  return order.makerTokenAddress === tokenPair.tokenA.address ? 'sell' : 'buy';
 };

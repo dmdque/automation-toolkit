@@ -1,20 +1,20 @@
 import { ZeroEx } from '0x.js';
+import { Transaction } from '@0xproject/types';
 import { config } from '../config';
 import { ServerError } from '../server-error';
 import { Web3Service } from './web3-service';
 
 export interface ICancelReceipt {
-  gasUsed: number;
-  cumulativeGasUsed: number;
+  gasCost: string;
   status: number;
 }
 
 export class ZeroExService {
   private readonly zeroEx: ZeroEx;
+  private readonly web3 = new Web3Service().getWeb3();
 
   constructor() {
-    const web3 = new Web3Service().getWeb3();
-    this.zeroEx = new ZeroEx(web3.currentProvider, {
+    this.zeroEx = new ZeroEx(this.web3.currentProvider, {
       networkId: config.networkId
     });
   }
@@ -27,9 +27,24 @@ export class ZeroExService {
 
   public async getCancelReceipt(txHash: string): Promise<ICancelReceipt> {
     try {
-      return await this.zeroEx.awaitTransactionMinedAsync(txHash, 5000) as ICancelReceipt;
+      const receipt = await this.zeroEx.awaitTransactionMinedAsync(txHash, 5000);
+      const tx = await this.getTx(txHash);
+
+      return {
+        gasCost: tx.gasPrice.times(tx.gas).toString(),
+        status: receipt.status
+      } as ICancelReceipt;
     } catch (err) {
       throw new ServerError(`cancel ${txHash} not yet mined`);
     }
+  }
+
+  private async getTx(txHash: string) {
+    return new Promise<Transaction>((resolve, reject) => {
+      this.web3.eth.getTransaction(txHash, (err, tx) => {
+        if (err) { return reject(err); }
+        resolve(tx);
+      });
+    });
   }
 }

@@ -28,7 +28,7 @@ export class CancelationReport extends Report<IStoredCancelLog> {
         {
           header: 'Mined Status',
           getElement: l => {
-            if (l.gasAmount === 'pending') { return 'Pending'; }
+            if (l.gasAmount === 'mining') { return 'Pending'; }
             if (l.gasAmount === 'unknown') { return 'Unknown'; }
             return 'Mined';
           }
@@ -36,7 +36,7 @@ export class CancelationReport extends Report<IStoredCancelLog> {
         {
           header: 'Gas Used (ETH)',
           getElement: l => {
-            if (l.gasAmount === 'pending' || l.gasAmount === 'unknown') { return ''; }
+            if (l.gasAmount === 'mining' || l.gasAmount === 'unknown') { return ''; }
 
             const ethUnitAmount = toUnitAmount({ token: { decimals: 18 }, value: l.gasAmount });
             return ethUnitAmount.round(4).toString();
@@ -45,7 +45,7 @@ export class CancelationReport extends Report<IStoredCancelLog> {
         {
           header: 'Gas Used (USD)',
           getElement: l => {
-            if (l.gasAmount === 'pending' || l.gasAmount === 'unknown') { return ''; }
+            if (l.gasAmount === 'mining' || l.gasAmount === 'unknown') { return ''; }
 
             const ethUnitAmount = toUnitAmount({ token: { decimals: 18 }, value: l.gasAmount });
             const ethUsdAmount = ethPrice.times(ethUnitAmount).round(4);

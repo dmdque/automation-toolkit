@@ -19,9 +19,8 @@ describe('CancellationWatcher', () => {
     const watcher = new CancellationWatcher(mock<AqueductRemote.Api.ITradingService>({
       getCancelReceipt: async () => {
         return {
-          gasUsed: 1234,
-          cumulativeGasUsed: 12345,
-          status: 1
+          gasCost: '1234',
+          status: 0
         };
       }
     }));
@@ -29,7 +28,7 @@ describe('CancellationWatcher', () => {
     await watcher.cycle();
 
     const updatedLog = await logRepository.findOne({ _id: log._id }) as IStoredCancelLog;
-    expect(updatedLog.gasAmount).to.equal('12345');
+    expect(updatedLog.gasAmount).to.equal('1234');
   });
 
   it ('should update logs appropriate if stale tx', async () => {

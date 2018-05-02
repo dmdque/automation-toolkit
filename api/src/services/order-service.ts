@@ -1,8 +1,13 @@
-import { IStoredOrder, orderRepository } from '../db/order-repository';
+import { IStoredOrder, orderRepository, State } from '../db/order-repository';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { LogService } from './log-service';
 
-export class OrderService {
+export interface IOrderService {
+  cancelOrder(order: IStoredOrder): Promise<void>;
+  updateOrder(order: IStoredOrder): Promise<number>;
+}
+
+export class OrderService implements IOrderService {
   private readonly logService = new LogService();
 
   public async cancelOrder(order: IStoredOrder) {
@@ -18,7 +23,8 @@ export class OrderService {
         marketId,
         message: `market ${marketId} canceled order ${order.id} w/ tx ${txHash}`
       });
-      order.valid = false;
+      order.state = State.Canceled;
+      order.softCanceled = false;
     } catch (err) {
       await this.logService.addMarketLog({
         severity: 'critical',
@@ -27,7 +33,10 @@ export class OrderService {
       });
     }
 
-    order.bound = false;
-    await orderRepository.update({ id: order.id }, order);
+    await this.updateOrder(order);
+  }
+
+  public async updateOrder(order: IStoredOrder) {
+    return await orderRepository.update({ id: order.id }, order);
   }
 }

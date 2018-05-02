@@ -5,7 +5,7 @@ import { ITokenPairCache, tokenPairCache } from '../cache/token-pair-cache';
 import { config } from '../config';
 import { bandRepository, IBandRepository, IStoredBand } from '../db/band-repository';
 import { IMarketRepository, IStoredMarket, marketRepository } from '../db/market-repository';
-import { IOrder, IOrderRepository, IStoredOrder, orderRepository } from '../db/order-repository';
+import { IOrder, IOrderRepository, IStoredOrder, orderRepository, State } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { getAbsoluteSpread } from '../utils/conversion';
@@ -41,6 +41,17 @@ export interface IBandServiceParams {
   walletService?: AqueductRemote.Api.IWalletService;
 }
 
+export type BandContainmentStatus = 'contained' | 'loss-risk' | 'no-loss-risk';
+
+export interface IBandPriceCheckParams {
+  price: BigNumber;
+  band: IStoredBand;
+  order: IOrder;
+  baseDecimals: number;
+}
+
+const bandProcessingMap: { [bandId: string]: 1 | undefined } = {};
+
 export class BandService {
   private readonly marketRepo: IMarketRepository;
   private readonly tpCache: ITokenPairCache;
@@ -65,6 +76,168 @@ export class BandService {
   }
 
   public async start(band: IStoredBand) {
+    if (bandProcessingMap[band._id]) { return; }
+
+    bandProcessingMap[band._id] = 1;
+    try {
+      await this.cycle(band);
+      bandProcessingMap[band._id] = undefined;
+    } catch (err) {
+      bandProcessingMap[band._id] = undefined;
+      throw err;
+    }
+  }
+
+  public async stop(band: IStoredBand) {
+    await this.logService.addBandLog({
+      severity: 'success',
+      bandId: band._id,
+      message: `band ${band._id} stopped`
+    });
+  }
+
+  public async validateRemove(bandId: string): Promise<IValidateRemoveResult> {
+    const orders = await this.orderRepo.find({ bandId, state: 0 });
+    return {
+      hasActiveOrders: orders.length > 0
+    };
+  }
+
+  public async remove({ bandId, immediateCancelation }: IRemoveBandRequest) {
+    const band = await this.bandRepo.findOne({ _id: bandId });
+    if (!band) {
+      throw new ServerError(`no band ${bandId} found`, 404);
+    }
+
+    if (immediateCancelation) {
+      const orders = await this.orderRepo.find({ bandId, state: 0 });
+      for (let order of orders) {
+        await new OrderService().cancelOrder(order);
+      }
+    }
+
+    await this.stop(band);
+    await this.bandRepo.delete({ _id: band._id });
+    await this.logService.addMarketLog({
+      severity: 'success',
+      marketId: band.marketId,
+      message: `band ${bandId} removed from market`
+    });
+  }
+
+  public async getAvailableBalance({ side, tokenPair, market }: IGetLimitOrderQuantityParams) {
+    if (side === 'buy') {
+      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenB.address }));
+      if (balance.lessThan(market.minQuoteAmount)) {
+        throw new Error(`balance is lower than minimum quote token amount: ${balance.toString()}/${market.minQuoteAmount}`);
+      }
+
+      return balance.lessThan(market.initialQuoteAmount) ? balance : new BigNumber(market.initialQuoteAmount);
+    } else {
+      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenA.address }));
+      if (balance.lessThan(market.minBaseAmount)) {
+        throw new Error(`balance is lower than minimum base token amount: ${balance.toString()}/${market.minBaseAmount}`);
+      }
+
+      return balance.lessThan(market.initialBaseAmount) ? balance : new BigNumber(market.initialBaseAmount);
+    }
+  }
+
+  public async bandContainmentStatus({ price, band, order, baseDecimals }: IBandPriceCheckParams): Promise<BandContainmentStatus> {
+    const absoluteSpread = getAbsoluteSpread({ price, spreadBps: band.spreadBps });
+
+    const orderPrice = await getOrderPrice({
+      order,
+      side: band.side as 'buy' | 'sell',
+      baseDecimals
+    });
+    const targetPrice = band.side === 'buy'
+      ? price.minus(absoluteSpread)
+      : price.add(absoluteSpread);
+
+    const absoluteTolerance = price.times(band.toleranceBps.toString()).times(.0001);
+
+    const isBelowLowerBound = orderPrice.lessThan(targetPrice.minus(absoluteTolerance));
+    const isAboveUpperBound = orderPrice.greaterThan(targetPrice.add(absoluteTolerance));
+
+    if (isBelowLowerBound) {
+      return band.side === 'buy' ? 'no-loss-risk' : 'loss-risk';
+    }
+
+    if (isAboveUpperBound) {
+      return band.side === 'buy' ? 'loss-risk' : 'no-loss-risk';
+    }
+
+    return 'contained';
+  }
+
+  /**
+   * Get the band with the highest spread
+   */
+  public async getBottomBand({ side, marketId }: { side: 'buy' | 'sell', marketId: string }) {
+    const bands = await this.bandRepo.find({ marketId, side });
+    if (!bands.length) { return undefined; }
+
+    return bands.reduce((a, b) => a.spreadBps > b.spreadBps ? a : b);
+  }
+
+  private async getValidatedOrder(order: IStoredOrder) {
+    // is it actually still valid?
+    // is it expired?
+    if (order.expirationUnixTimestampSec <= (new Date().getTime() / 1000)) {
+      order.state = State.Expired;
+      await this.orderRepo.update({ _id: order._id }, order);
+
+      if (order.bandId) {
+        await this.logService.addBandLog({
+          bandId: order.bandId,
+          message: `order ${order.id} expired`,
+          severity: 'error'
+        });
+      }
+      return;
+    }
+
+    let remoteOrder: Aqueduct.Api.Order;
+    // is it invalid for some other reason?
+    try {
+      remoteOrder = await this.aqueductOrdersService.getById({ orderId: order.id });
+    } catch (err) {
+      console.error(`failed to get order by id: ${err.message}`);
+      if (order.bandId) {
+        await this.logService.addBandLog({
+          bandId: order.bandId,
+          message: `failed to get order by id ${order.id}: ${err.message} - treating as still valid`,
+          severity: 'error'
+        });
+      }
+
+      // if the server fails, we have to treat this order as valid, otherwise we may overextend
+      return order;
+    }
+
+    if (remoteOrder.state !== 0) {
+      order.state = remoteOrder.state;
+
+      if (order.bandId) {
+        await this.logService.addBandLog({
+          bandId: order.bandId,
+          message: `order ${order.id} invalid with state ${remoteOrder.state} - removing, will refresh band`,
+          severity: 'error'
+        });
+      }
+
+      await this.orderRepo.update({ _id: order._id }, order);
+      return;
+    }
+
+    order.remainingTakerTokenAmount = remoteOrder.remainingTakerTokenAmount;
+    await this.orderRepo.update({ _id: order._id }, order);
+
+    return order.remainingTakerTokenAmount !== '0' && order;
+  }
+
+  private async cycle(band: IStoredBand) {
     const market = await this.marketRepo.findOne({ _id: band.marketId });
     if (!market) {
       throw new ServerError(`market ${band.marketId} doesn't exist`, 404);
@@ -90,15 +263,10 @@ export class BandService {
     const validBandOrders = new Array<IOrder>();
 
     // are there already bound orders?
-    let existingOrders = await this.orderRepo.find({ bandId: band._id, bound: true });
+    let existingOrders = await this.orderRepo.find({ bandId: band._id, state: State.Open });
     if (existingOrders && existingOrders.length > 0) {
       // market got turned off, clean up any orders that are still showing as bound
       if (!market.active) {
-        for (let i = 0; i < existingOrders.length; i++) {
-          const order = existingOrders[i];
-          order.bound = false;
-          await this.orderRepo.update({ _id: order._id }, order);
-        }
         return;
       }
 
@@ -163,8 +331,7 @@ export class BandService {
 
                 console.log(`band ${band._id} canceled order due to price changes ${order.id} w/ tx ${txHash}`);
 
-                order.valid = false;
-                order.bound = false;
+                order.state = State.Canceled;
                 await this.orderRepo.update({ _id: order._id }, order);
               } catch (err) {
                 await this.logService.addBandLog({
@@ -175,10 +342,10 @@ export class BandService {
                 return;
               }
             } else {
-              // it's not going to lose us money (right now) but we should keep an eye on it
-              order.bound = false;
-              order.bandId = undefined;
-              order.valid = true;
+              // it's not going to lose us money (right now), soft cancel it
+              await this.tradingService.softCancelOrder({ orderHash: order.orderHash });
+              order.state = State.Canceled;
+              order.softCanceled = true;
               await this.orderRepo.update({ _id: order._id }, order);
             }
           }
@@ -191,24 +358,6 @@ export class BandService {
 
     if (!market.active) {
       return;
-    }
-
-    // let's see if there are orders that actually fit the bill here
-    const orphanedOrders = await this.orderRepo.find({ marketId: market._id, valid: true, bound: false });
-    for (let o of orphanedOrders) {
-      const order = await this.getValidatedOrder(o);
-      if (!order) { continue; }
-
-      const status = await this.bandContainmentStatus({
-        price, order, band, baseDecimals: tokenPair.tokenA.decimals
-      });
-      if (status === 'contained') {
-        // great, update it
-        order.bandId = band._id;
-        order.bound = true;
-        await this.orderRepo.update({ _id: order._id}, order);
-        validBandOrders.push(order);
-      }
     }
 
     const allBands = await this.bandRepo.find({ marketId: market._id, side: band.side });
@@ -246,7 +395,7 @@ export class BandService {
     let quantity = availableTokenBalance.times((band.units / totalUnitsQuantity).toString()).minus(remainingQuantity);
     if (band.side === 'buy') {
       // the quantity above is actually in quoteTokens, not baseTokens - convert based on price
-      quantity = quantity.div(adjustedPrice).round();
+      quantity = quantity.div(adjustedPrice);
     }
 
     try {
@@ -257,11 +406,11 @@ export class BandService {
           price: adjustedPrice.toString(),
           expirationDate: moment().add(band.expirationSeconds, 'seconds').toDate(),
           side: band.side,
-          quantityInWei: quantity.toString()
+          quantityInWei: quantity.round().toString()
         }
       });
 
-      await this.orderRepo.create({ ...order, bandId: band._id, bound: true, valid: true, marketId: band.marketId });
+      await this.orderRepo.create({ ...order, bandId: band._id, marketId: band.marketId, softCanceled: false });
       await this.logService.addBandLog({ bandId: band._id, message: `opened order of ${quantity.toString()} at ${adjustedPrice.toString()}`, severity: 'info' });
       await this.logService.addBandLog({ bandId: band._id, message: `band started ${band._id}`, severity: 'success' });
     } catch (err) {
@@ -272,154 +421,4 @@ export class BandService {
       });
     }
   }
-
-  public async stop(band: IStoredBand) {
-    await this.logService.addBandLog({
-      severity: 'success',
-      bandId: band._id,
-      message: `band ${band._id} stopped`
-    });
-  }
-
-  public async validateRemove(bandId: string): Promise<IValidateRemoveResult> {
-    const orders = await this.orderRepo.find({ bandId, bound: true });
-    return {
-      hasActiveOrders: orders.length > 0
-    };
-  }
-
-  public async remove({ bandId, immediateCancelation }: IRemoveBandRequest) {
-    const band = await this.bandRepo.findOne({ _id: bandId });
-    if (!band) {
-      throw new ServerError(`no band ${bandId} found`, 404);
-    }
-
-    if (immediateCancelation) {
-      const orders = await this.orderRepo.find({ bandId, valid: true });
-      for (let order of orders) {
-        await new OrderService().cancelOrder(order);
-      }
-    }
-
-    await this.stop(band);
-    await this.bandRepo.delete({ _id: band._id });
-    await this.logService.addMarketLog({
-      severity: 'success',
-      marketId: band.marketId,
-      message: `band ${bandId} removed from market`
-    });
-  }
-
-  public async getAvailableBalance({ side, tokenPair, market }: IGetLimitOrderQuantityParams) {
-    if (side === 'buy') {
-      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenB.address }));
-      if (balance.lessThan(market.minQuoteAmount)) {
-        throw new Error(`balance is lower than minimum quote token amount: ${balance.toString()}/${market.minQuoteAmount}`);
-      }
-
-      return balance.lessThan(market.initialQuoteAmount) ? balance : new BigNumber(market.initialQuoteAmount);
-    } else {
-      const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenA.address }));
-      if (balance.lessThan(market.minBaseAmount)) {
-        throw new Error(`balance is lower than minimum base token amount: ${balance.toString()}/${market.minBaseAmount}`);
-      }
-
-      return balance.lessThan(market.initialBaseAmount) ? balance : new BigNumber(market.initialBaseAmount);
-    }
-  }
-
-  private async bandContainmentStatus({ price, band, order, baseDecimals }: IBandPriceCheckParams): Promise<BandContainmentStatus> {
-    const absoluteSpread = getAbsoluteSpread({ price, spreadBps: band.spreadBps });
-
-    const orderPrice = await getOrderPrice({
-      order,
-      side: band.side as 'buy' | 'sell',
-      baseDecimals
-    });
-    const targetPrice = band.side === 'buy'
-      ? price.minus(absoluteSpread)
-      : price.add(absoluteSpread);
-
-    const absoluteTolerance = price.times(band.toleranceBps.toString()).times(.0001);
-
-    const isBelowLowerBound = orderPrice.lessThan(targetPrice.minus(absoluteTolerance));
-    const isAboveUpperBound = orderPrice.greaterThan(targetPrice.add(absoluteTolerance));
-
-    if (isBelowLowerBound) {
-      return band.side === 'buy' ? 'no-loss-risk' : 'loss-risk';
-    }
-
-    if (isAboveUpperBound) {
-      return band.side === 'buy' ? 'loss-risk' : 'no-loss-risk';
-    }
-
-    return 'contained';
-  }
-
-  private async getValidatedOrder(order: IStoredOrder) {
-    // is it actually still valid?
-    // is it expired?
-    if (order.expirationUnixTimestampSec <= (new Date().getTime() / 1000)) {
-      order.valid = false;
-      order.bound = false;
-      await this.orderRepo.update({ _id: order._id }, order);
-
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `order ${order.id} expired`,
-          severity: 'error'
-        });
-      }
-      return;
-    }
-
-    let remoteOrder: Aqueduct.Api.Order;
-    // is it invalid for some other reason?
-    try {
-      remoteOrder = await this.aqueductOrdersService.getById({ orderId: order.id });
-    } catch (err) {
-      console.error(`failed to get order by id: ${err.message}`);
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `failed to get order by id ${order.id}: ${err.message} - treating as still valid`,
-          severity: 'error'
-        });
-      }
-
-      // if the server fails, we have to treat this order as valid, otherwise we may overextend
-      return order;
-    }
-
-    if (remoteOrder.state !== 0) {
-      order.bound = false;
-      order.valid = false;
-
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `order ${order.id} invalid with state ${remoteOrder.state} - removing, will refresh band`,
-          severity: 'error'
-        });
-      }
-
-      await this.orderRepo.update({ _id: order._id }, order);
-      return;
-    }
-
-    order.remainingTakerTokenAmount = remoteOrder.remainingTakerTokenAmount;
-    await this.orderRepo.update({ _id: order._id }, order);
-
-    return order.remainingTakerTokenAmount !== '0' && order;
-  }
-}
-
-type BandContainmentStatus = 'contained' | 'loss-risk' | 'no-loss-risk';
-
-interface IBandPriceCheckParams {
-  price: BigNumber;
-  band: IStoredBand;
-  order: IOrder;
-  baseDecimals: number;
 }

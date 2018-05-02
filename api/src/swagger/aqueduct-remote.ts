@@ -49,8 +49,7 @@ export namespace AqueductRemote {
     }
 
     export interface ICancelReceipt {
-      gasUsed: number;
-      cumulativeGasUsed: number;
+      gasCost: string;
       status: number;
     }
 
@@ -77,6 +76,10 @@ export namespace AqueductRemote {
       orderHash: string;
     }
 
+    export interface ITradingSoftCancelOrderParams {
+      orderHash: string;
+    }
+
     export interface ITradingGetCancelReceiptParams {
       txHash: string;
     }
@@ -95,6 +98,7 @@ export namespace AqueductRemote {
     export interface ITradingService {
       createLimitOrder(params: ITradingCreateLimitOrderParams): Promise<IOrder>;
       cancelOrder(params: ITradingCancelOrderParams): Promise<string>;
+      softCancelOrder(params: ITradingSoftCancelOrderParams): Promise<void>;
       getCancelReceipt(params: ITradingGetCancelReceiptParams): Promise<ICancelReceipt>;
     }
 
@@ -116,6 +120,14 @@ export namespace AqueductRemote {
           url: `${baseApiUrl}/api/trading/cancel_order/${params.orderHash}`
         };
         return this.executeRequest<string>(requestParams);
+      }
+
+      public async softCancelOrder(params: ITradingSoftCancelOrderParams) {
+        const requestParams: IRequestParams = {
+          method: 'POST',
+          url: `${baseApiUrl}/api/trading/soft_cancel_order/${params.orderHash}`
+        };
+        return this.executeRequest<void>(requestParams);
       }
 
       public async getCancelReceipt(params: ITradingGetCancelReceiptParams) {

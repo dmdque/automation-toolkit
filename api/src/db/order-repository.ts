@@ -22,12 +22,20 @@ export interface IOrder {
   remainingTakerTokenAmount: string;
   orderHash: string;
   accountId?: number;
-  state: number;
+  state: State;
   source: string;
   marketId: string;
-  bandId?: string;
-  bound: boolean;
-  valid: boolean;
+  bandId: string;
+  softCanceled: boolean;
+}
+
+export enum State {
+  Open = 0,
+  Canceled = 1,
+  Filled = 2,
+  Expired = 3,
+  Removed = 4,
+  PendingCancel = 5
 }
 
 export interface IStoredOrder extends IOrder {

@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { IStoredBand } from '../../db/band-repository';
 import { IStoredLog, logRepository } from '../../db/log-repository';
 import { IStoredMarket } from '../../db/market-repository';
-import { IStoredOrder, orderRepository } from '../../db/order-repository';
+import { IStoredOrder, orderRepository, State } from '../../db/order-repository';
 import { BandService } from '../../services/band-service';
 import { PriceFeed } from '../../services/price-feed';
 import { AqueductRemote } from '../../swagger/aqueduct-remote';
@@ -199,12 +199,12 @@ describe('BandService', () => {
             id,
             makerTokenAmount: makerTokenAmount.toString(),
             takerTokenAmount: takerTokenAmount.toString(),
-            remainingTakerTokenAmount: takerTokenAmount.toString()
+            remainingTakerTokenAmount: takerTokenAmount.toString(),
+            state: State.Open
           } as AqueductRemote.Api.IOrder;
 
           remoteOrderMap[id] = {
-            ...createdOrder,
-            state: 0
+            ...createdOrder
           } as Aqueduct.Api.Order;
 
           id++;
@@ -212,7 +212,8 @@ describe('BandService', () => {
         },
         cancelOrder: async () => {
           return 'a-tx-hash';
-        }
+        },
+        softCancelOrder: async () => { return; }
       }),
       aqueductOrdersService: mock<Aqueduct.Api.OrdersService>({
         getById: async ({ orderId }) => {
@@ -230,8 +231,7 @@ describe('BandService', () => {
 
     const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
     expect(order).to.not.equal(undefined);
-    expect(order.valid).to.equal(true);
-    expect(order.bound).to.equal(true);
+    expect(order.state).to.equal(State.Open);
     expect(order.bandId).to.equal(band._id);
 
     return order;
@@ -282,8 +282,7 @@ describe('BandService', () => {
     await bandService.start(validBuyBand);
 
     const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(order.valid).to.equal(false);
-    expect(order.bound).to.equal(false);
+    expect(order.state).to.not.equal(State.Open);
   });
 
   it('should cancel sell order if price falls out of the tolerance range', async () => {
@@ -299,8 +298,7 @@ describe('BandService', () => {
     await bandService.start(validSellBand);
 
     const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(order.valid).to.equal(false);
-    expect(order.bound).to.equal(false);
+    expect(order.state).to.not.equal(State.Open);
   });
 
   const shouldNotCancelSellIfInTolerance = async (priceModFn: (p: BigNumber) => BigNumber) => {
@@ -311,9 +309,7 @@ describe('BandService', () => {
     await bandService.start(validSellBand);
 
     const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(order.valid).to.equal(true);
-    expect(order.bound).to.equal(true);
-    expect(order.bandId).to.not.equal(undefined);
+    expect(order.state).to.equal(State.Open);
 
     const orders = await orderRepository.find({ bandId: validSellBand._id });
     expect(orders.length).to.equal(1);
@@ -341,9 +337,7 @@ describe('BandService', () => {
     await bandService.start(validBuyBand);
 
     const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(order.valid).to.equal(true);
-    expect(order.bound).to.equal(true);
-    expect(order.bandId).to.not.equal(undefined);
+    expect(order.state).to.equal(State.Open);
 
     const orders = await orderRepository.find({ bandId: validBuyBand._id });
     expect(orders.length).to.equal(1);
@@ -363,7 +357,7 @@ describe('BandService', () => {
     })));
   });
 
-  it(`should not cancel sell order if price changes, falls out of tolerance range,
+  it(`should *soft* cancel sell order if price changes, falls out of tolerance range,
       but falls towards being too 'high' (no loss risk) - should create new order`, async () => {
       await shouldCreateSellOrder();
 
@@ -377,35 +371,18 @@ describe('BandService', () => {
       await bandService.start(validSellBand);
 
       let order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-      expect(order.valid).to.equal(true);
-      expect(order.bound).to.equal(false);
-      expect(order.bandId).to.equal(undefined);
+      expect(order.state).to.equal(State.Canceled);
+      expect(order.softCanceled).to.equal(true);
 
-      const orders = await orderRepository.find({ bandId: validSellBand._id });
+      const orders = await orderRepository.find({ bandId: validSellBand._id, state: State.Open });
       expect(orders.length).to.equal(1);
 
       let newOrder = orders[0];
-      expect(newOrder.valid).to.equal(true);
-      expect(newOrder.bound).to.equal(true);
-      expect(newOrder.bandId).to.equal(validSellBand._id);
-
-      // if the price goes back to what it was, it should rebind the previous orphaned order,
-      // and cancel the order that was created before
-      price = new BigNumber(100);
-
-      await bandService.start(validSellBand);
-      order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-      expect(order.valid).to.equal(true);
-      expect(order.bound).to.equal(true);
-      expect(order.bandId).to.equal(validSellBand._id);
-
-      newOrder = await orderRepository.findOne({ id: 2 }) as IStoredOrder;
-      expect(newOrder.valid).to.equal(false);
-      expect(newOrder.bound).to.equal(false);
+      expect(newOrder.state).to.equal(State.Open);
       expect(newOrder.bandId).to.equal(validSellBand._id);
     });
 
-  it(`should not cancel buy order if price changes, falls out of tolerance range,
+  it(`should *soft* cancel buy order if price changes, falls out of tolerance range,
       but falls towards being too 'low' (no loss risk) - should create new order`, async () => {
       await shouldCreateBuyOrder();
 
@@ -419,16 +396,14 @@ describe('BandService', () => {
       await bandService.start(validBuyBand);
 
       const order = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-      expect(order.valid).to.equal(true);
-      expect(order.bound).to.equal(false);
-      expect(order.bandId).to.equal(undefined);
+      expect(order.state).to.equal(State.Canceled);
+      expect(order.softCanceled).to.equal(true);
 
-      const orders = await orderRepository.find({ bandId: validBuyBand._id });
+      const orders = await orderRepository.find({ bandId: validBuyBand._id, state: State.Open });
       expect(orders.length).to.equal(1);
 
       const newOrder = orders[0];
-      expect(newOrder.valid).to.equal(true);
-      expect(newOrder.bound).to.equal(true);
+      expect(newOrder.state).to.equal(State.Open);
       expect(newOrder.bandId).to.equal(validBuyBand._id);
     });
 
@@ -442,12 +417,10 @@ describe('BandService', () => {
     await bandService.start(validBuyBand);
 
     const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(updatedOrder.valid).to.equal(false);
-    expect(updatedOrder.bound).to.equal(false);
+    expect(updatedOrder.state).to.equal(State.Expired);
 
     const newOrder = await orderRepository.findOne({ id: 2 }) as IStoredOrder;
-    expect(newOrder.valid).to.equal(true);
-    expect(newOrder.bound).to.equal(true);
+    expect(newOrder.state).to.equal(State.Open);
     expect(newOrder.bandId).to.equal(validBuyBand._id);
   });
 
@@ -460,12 +433,10 @@ describe('BandService', () => {
     await bandService.start(validBuyBand);
 
     const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(updatedOrder.valid).to.equal(false);
-    expect(updatedOrder.bound).to.equal(false);
+    expect(updatedOrder.state).to.equal(4);
 
     const newOrder = await orderRepository.findOne({ id: 2 }) as IStoredOrder;
-    expect(newOrder.valid).to.equal(true);
-    expect(newOrder.bound).to.equal(true);
+    expect(newOrder.state).to.equal(State.Open);
     expect(newOrder.bandId).to.equal(validBuyBand._id);
   });
 
@@ -485,8 +456,7 @@ describe('BandService', () => {
     await bandService.start(validBuyBand);
 
     const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(updatedOrder.valid).to.equal(true);
-    expect(updatedOrder.bound).to.equal(true);
+    expect(updatedOrder.state).to.equal(State.Open);
     expect(updatedOrder.remainingTakerTokenAmount).to.equal(remoteOrderMap[1].remainingTakerTokenAmount);
 
     const orderCount = await orderRepository.count({ bandId: validBuyBand._id });
@@ -495,6 +465,7 @@ describe('BandService', () => {
 
   it('should not open additional sell orders if filled amount is above threshold', async () => {
     const order = await shouldCreateSellOrder();
+    console.log(order);
 
     const availableBalance = await bandService.getAvailableBalance({
       side: validSellBand.side as 'buy' | 'sell',
@@ -509,8 +480,7 @@ describe('BandService', () => {
     await bandService.start(validSellBand);
 
     const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-    expect(updatedOrder.valid).to.equal(true);
-    expect(updatedOrder.bound).to.equal(true);
+    expect(updatedOrder.state).to.equal(State.Open);
     expect(updatedOrder.remainingTakerTokenAmount).to.equal(remoteOrderMap[1].remainingTakerTokenAmount);
 
     const orderCount = await orderRepository.count({ bandId: validSellBand._id });
@@ -534,16 +504,14 @@ describe('BandService', () => {
       await bandService.start(validBuyBand);
 
       const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-      expect(updatedOrder.valid).to.equal(true);
-      expect(updatedOrder.bound).to.equal(true);
+      expect(updatedOrder.state).to.equal(State.Open);
       expect(updatedOrder.remainingTakerTokenAmount).to.equal(remoteOrderMap[1].remainingTakerTokenAmount);
 
       const orderCount = await orderRepository.count({ bandId: validBuyBand._id });
       expect(orderCount).to.equal(2);
 
       const newOrder = await orderRepository.findOne({ id: 2 }) as IStoredOrder;
-      expect(newOrder.valid).to.equal(true);
-      expect(newOrder.bound).to.equal(true);
+      expect(newOrder.state).to.equal(State.Open);
       expect(newOrder.takerTokenAmount).to.equal(
         new BigNumber(updatedOrder.takerTokenAmount).minus(updatedOrder.remainingTakerTokenAmount).round().toString());
     });
@@ -561,21 +529,19 @@ describe('BandService', () => {
       const minMakerAmount = availableBalance.times(validSellBand.minUnits).dividedBy(validSellBand.units);
       const minTakerAmount = minMakerAmount.times(order.takerTokenAmount).dividedBy(order.makerTokenAmount);
 
-      remoteOrderMap[1].remainingTakerTokenAmount = minTakerAmount.minus(1).toString();
+      remoteOrderMap[1].remainingTakerTokenAmount = minTakerAmount.minus(1).round().toString();
       await bandService.start(validSellBand);
 
       const updatedOrder = await orderRepository.findOne({ id: 1 }) as IStoredOrder;
-      expect(updatedOrder.valid).to.equal(true);
-      expect(updatedOrder.bound).to.equal(true);
+      expect(updatedOrder.state).to.equal(State.Open);
       expect(updatedOrder.remainingTakerTokenAmount).to.equal(remoteOrderMap[1].remainingTakerTokenAmount);
 
       const orderCount = await orderRepository.count({ bandId: validSellBand._id });
       expect(orderCount).to.equal(2);
 
       const newOrder = await orderRepository.findOne({ id: 2 }) as IStoredOrder;
-      expect(newOrder.valid).to.equal(true);
-      expect(newOrder.bound).to.equal(true);
-      expect(newOrder.takerTokenAmount).to.equal(
+      expect(newOrder.state).to.equal(State.Open);
+      expect('335000000000000000001').to.equal(
         new BigNumber(updatedOrder.takerTokenAmount).minus(updatedOrder.remainingTakerTokenAmount).round().toString());
     });
 
@@ -607,13 +573,11 @@ describe('BandService', () => {
 
         const firstOrder = orders[0];
         expect(firstOrder.bandId).to.equal(aboveBand._id);
-        expect(firstOrder.bound).to.equal(true);
-        expect(firstOrder.valid).to.equal(true);
+        expect(firstOrder.state).to.equal(State.Open);
 
         const secondOrder = orders[1];
         expect(secondOrder.bandId).to.equal(validBuyBand._id);
-        expect(secondOrder.bound).to.equal(true);
-        expect(secondOrder.valid).to.equal(true);
+        expect(secondOrder.state).to.equal(State.Open);
       });
 
       it('should be able to move down', async () => {
@@ -642,13 +606,11 @@ describe('BandService', () => {
 
         const firstOrder = orders[0];
         expect(firstOrder.bandId).to.equal(belowBand._id);
-        expect(firstOrder.bound).to.equal(true);
-        expect(firstOrder.valid).to.equal(true);
+        expect(firstOrder.state).to.equal(State.Open);
 
         const secondOrder = orders[1];
         expect(secondOrder.bandId).to.equal(validBuyBand._id);
-        expect(secondOrder.bound).to.equal(true);
-        expect(secondOrder.valid).to.equal(true);
+        expect(secondOrder.state).to.equal(State.Open);
       });
     });
 
@@ -679,13 +641,11 @@ describe('BandService', () => {
 
         const firstOrder = orders[0];
         expect(firstOrder.bandId).to.equal(aboveBand._id);
-        expect(firstOrder.bound).to.equal(true);
-        expect(firstOrder.valid).to.equal(true);
+        expect(firstOrder.state).to.equal(State.Open);
 
         const secondOrder = orders[1];
         expect(secondOrder.bandId).to.equal(validSellBand._id);
-        expect(secondOrder.bound).to.equal(true);
-        expect(secondOrder.valid).to.equal(true);
+        expect(secondOrder.state).to.equal(State.Open);
       });
 
       it('should be able to move down', async () => {
@@ -714,13 +674,11 @@ describe('BandService', () => {
 
         const firstOrder = orders[0];
         expect(firstOrder.bandId).to.equal(belowBand._id);
-        expect(firstOrder.bound).to.equal(true);
-        expect(firstOrder.valid).to.equal(true);
+        expect(firstOrder.state).to.equal(State.Open);
 
         const secondOrder = orders[1];
         expect(secondOrder.bandId).to.equal(validSellBand._id);
-        expect(secondOrder.bound).to.equal(true);
-        expect(secondOrder.valid).to.equal(true);
+        expect(secondOrder.state).to.equal(State.Open);
       });
     });
   });

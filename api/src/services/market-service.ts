@@ -4,7 +4,7 @@ import { config } from '../config';
 import { bandRepository } from '../db/band-repository';
 import { IMarket, IStoredMarket, marketRepository } from '../db/market-repository';
 import { IMarketStatsHistory, marketStatsHistoryRepository } from '../db/market-stats-history-repository';
-import { orderRepository } from '../db/order-repository';
+import { orderRepository, State } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { toUnitAmount } from '../utils/conversion';
@@ -132,20 +132,14 @@ export class MarketService {
 
   public async validateStop(marketId: string): Promise<IValidateStopResult> {
     const bands = await bandRepository.find({ marketId });
-    for (let i = 0; i < bands.length; i++) {
-      const band = bands[i];
-
-      const order = await orderRepository.findOne({ bandId: band._id, bound: true });
+    for (let band of bands) {
+      const order = await orderRepository.findOne({ bandId: band._id, state: State.Open });
       if (order) {
-        return {
-          hasActiveBands: true
-        };
+        return { hasActiveBands: true };
       }
     }
 
-    return {
-      hasActiveBands: false
-    };
+    return { hasActiveBands: false };
   }
 
   public async deleteMarket(marketId: string) {
@@ -184,7 +178,7 @@ export class MarketService {
     const buyBands = bands.filter(b => b.side === 'buy');
     for (let i = 0; i < buyBands.length; i++) {
       const buyBand = buyBands[i];
-      const orders = await orderRepository.find({ bandId: buyBand._id, bound: true, valid: true });
+      const orders = await orderRepository.find({ bandId: buyBand._id, state: State.Open });
       orders.forEach(o => openQuoteAmount = openQuoteAmount.add(o.makerTokenAmount));
     }
 
@@ -192,7 +186,7 @@ export class MarketService {
     const sellBands = bands.filter(b => b.side === 'sell');
     for (let i = 0; i < sellBands.length; i++) {
       const sellBand = sellBands[i];
-      const orders = await orderRepository.find({ bandId: sellBand._id, bound: true, valid: true });
+      const orders = await orderRepository.find({ bandId: sellBand._id, state: State.Open });
       orders.forEach(o => openBaseAmount = openBaseAmount.add(o.makerTokenAmount));
     }
 
@@ -250,7 +244,7 @@ export class MarketService {
   }
 
   private async cancelMarketOrders(marketId: string) {
-    const existingOrders = await orderRepository.find({ marketId, valid: true });
+    const existingOrders = await orderRepository.find({ marketId, state: State.Open });
     if (existingOrders && existingOrders.length > 0) {
       for (let order of existingOrders) {
         await new OrderService().cancelOrder(order);

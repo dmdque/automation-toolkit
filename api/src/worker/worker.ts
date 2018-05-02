@@ -3,6 +3,7 @@ import { marketRepository } from '../db/market-repository';
 import { BandService } from '../services/band-service';
 import { MarketService } from '../services/market-service';
 import { CancellationWatcher } from './cancellation-watcher';
+import { SoftCancellationWatcher } from './soft-cancellation-watcher';
 
 export class Worker {
   private readonly bandService = new BandService();
@@ -12,6 +13,7 @@ export class Worker {
     this.watchBands();
     this.watchMarketStats();
     new CancellationWatcher().start();
+    new SoftCancellationWatcher().start();
   }
 
   private async watchBands() {

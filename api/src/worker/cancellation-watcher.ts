@@ -26,7 +26,7 @@ export class CancellationWatcher {
     for (let log of cancellationLogs) {
       try {
         const receipt = await this.tradingService.getCancelReceipt({ txHash: log.txHash });
-        log.gasAmount = receipt.cumulativeGasUsed.toString();
+        log.gasAmount = receipt.gasCost;
         await logRepository.update({ _id: log._id }, log);
       } catch {
         if (moment(log.dateCreated).isBefore(moment().subtract(3, 'hours'))) {

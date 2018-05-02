@@ -1,4 +1,4 @@
-import { CancelOrder, LimitOrder } from 'aqueduct';
+import { CancelOrder, LimitOrder, SoftCancelOrder } from 'aqueduct';
 import { BigNumber } from 'bignumber.js';
 import { Body, Post, Route, Tags } from 'tsoa';
 import { config } from '../config';
@@ -73,7 +73,25 @@ export class TradingController {
   @Post('cancel_order/{orderHash}')
   @Tags('Trading')
   public async cancelOrder(orderHash: string): Promise<string> {
-    return await new CancelOrder({
+    const txHash = await new CancelOrder({
+      nodeUrl: config.nodeUrl,
+      orderHash
+    }).execute();
+
+    // immediately removes it from the book
+    await new SoftCancelOrder({
+      nodeUrl: config.nodeUrl,
+      orderHash
+    }).execute();
+
+    return txHash;
+  }
+
+  @Post('soft_cancel_order/{orderHash}')
+  @Tags('Trading')
+  public async softCancelOrder(orderHash: string) {
+    // immediately removes it from the book
+    await new SoftCancelOrder({
       nodeUrl: config.nodeUrl,
       orderHash
     }).execute();

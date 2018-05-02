@@ -43,8 +43,7 @@ const models: TsoaRoute.Models = {
     },
     "ICancelReceipt": {
         "properties": {
-            "gasUsed": { "dataType": "double", "required": true },
-            "cumulativeGasUsed": { "dataType": "double", "required": true },
+            "gasCost": { "dataType": "string", "required": true },
             "status": { "dataType": "double", "required": true },
         },
     },
@@ -104,6 +103,25 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.cancelOrder.apply(controller, validatedArgs);
+            promiseHandler(controller, promise, response, next);
+        });
+    app.post('/api/trading/soft_cancel_order/:orderHash',
+        function(request: any, response: any, next: any) {
+            const args = {
+                orderHash: { "in": "path", "name": "orderHash", "required": true, "dataType": "string" },
+            };
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new TradingController();
+
+
+            const promise = controller.softCancelOrder.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
     app.post('/api/trading/cancel_receipt/:txHash',
