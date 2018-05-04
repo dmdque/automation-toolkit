@@ -142,12 +142,14 @@ export class LogService implements ILogService {
   }
 
   public async add<T extends LogTypes>(params: IAddLogParams<T>) {
+    console.info(params.message);
     const data: any = params.data || {};
 
     return await logRepository.create({
       message: params.message,
       severity: params.severity,
       type: params.type,
+      dateCreated: new Date(),
       ...data
     });
   }

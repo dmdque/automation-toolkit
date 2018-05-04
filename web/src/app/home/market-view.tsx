@@ -165,7 +165,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
     if (validateStop.hasActiveBands) {
       this.selectStopBehaviorProps = {
         onClose: () => this.selectStopBehaviorProps = undefined,
-        onSelect: async (immediateCancelation: boolean) => await this.executeStop(market._id, immediateCancelation),
+        onSelect: async (hardCancelation: boolean) => await this.executeStop(market._id, hardCancelation),
         message: 'There are currently live orders in this market.',
         submitText: 'Stop Market'
       };
@@ -175,12 +175,12 @@ export class MarketView extends React.Component<IMarketViewProps> {
     await this.executeStop(market._id, false);
   }
 
-  private async executeStop(marketId: string, immediateCancelation: boolean) {
+  private async executeStop(marketId: string, hardCancelation: boolean) {
     try {
       await new Dashboard.Api.MarketsService().stopMarket({
         request: {
           marketId,
-          immediateCancelation
+          hardCancelation
         }
       });
       await this.refresh();

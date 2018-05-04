@@ -46,3 +46,7 @@ export const getOrderAttributes = ({ side, quantityInWei, price }: IGetOrderAttr
 export const getOrderSide = ({ order, tokenPair }: { order: IStoredOrder; tokenPair: ITokenPair; }) => {
   return order.makerTokenAddress === tokenPair.tokenA.address ? 'sell' : 'buy';
 };
+
+export const getRemainingMakerAmount = (order: IOrder) => {
+  return new BigNumber(order.remainingTakerTokenAmount).times(order.makerTokenAmount).dividedBy(order.takerTokenAmount);
+};

@@ -45,7 +45,7 @@ export namespace Dashboard {
 
     export interface IRemoveBandRequest {
       bandId: string;
-      immediateCancelation: boolean;
+      hardCancelation: boolean;
     }
 
     export interface IStoredLog {
@@ -92,7 +92,7 @@ export namespace Dashboard {
 
     export interface IStopMarketRequest {
       marketId: string;
-      immediateCancelation: boolean;
+      hardCancelation: boolean;
     }
 
     export interface IMarketStats {

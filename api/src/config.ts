@@ -1,3 +1,4 @@
+import { DefaultPriceFeed } from './services/default-price-feed';
 import { PriceFeed } from './services/price-feed';
 
 const apiKeyId = process.env['AQUEDUCT_API_KEY_ID'];
@@ -12,5 +13,5 @@ export interface IConfig {
 export const config: IConfig = {
   networkId: undefined as any,
   apiKeyId,
-  priceFeed: undefined as any
+  priceFeed: new DefaultPriceFeed()
 };

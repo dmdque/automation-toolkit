@@ -5,13 +5,13 @@ import { ITokenPairCache, tokenPairCache } from '../cache/token-pair-cache';
 import { config } from '../config';
 import { bandRepository, IBandRepository, IStoredBand } from '../db/band-repository';
 import { IMarketRepository, IStoredMarket, marketRepository } from '../db/market-repository';
-import { IOrder, IOrderRepository, IStoredOrder, orderRepository, State } from '../db/order-repository';
+import { IOrder, IOrderRepository, orderRepository, State } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { getAbsoluteSpread } from '../utils/conversion';
 import { getOrderPrice } from '../utils/order-utils';
 import { ILogService, LogService } from './log-service';
-import { OrderService } from './order-service';
+import { IOrderService, OrderService } from './order-service';
 import { PriceFeed } from './price-feed';
 
 export interface IGetLimitOrderQuantityParams {
@@ -26,7 +26,7 @@ export interface IValidateRemoveResult {
 
 export interface IRemoveBandRequest {
   bandId: string;
-  immediateCancelation: boolean;
+  hardCancelation: boolean;
 }
 
 export interface IBandServiceParams {
@@ -62,6 +62,7 @@ export class BandService {
   private readonly tradingService: AqueductRemote.Api.ITradingService;
   private readonly walletService: AqueductRemote.Api.IWalletService;
   private readonly logService: ILogService;
+  private readonly orderService: IOrderService;
 
   constructor(params: IBandServiceParams = {}) {
     this.logService = params.logService || new LogService();
@@ -73,10 +74,11 @@ export class BandService {
     this.bandRepo = params.bandRepo || bandRepository;
     this.tradingService = params.tradingService || new AqueductRemote.Api.TradingService();
     this.walletService = params.walletService || new AqueductRemote.Api.WalletService();
+    this.orderService = new OrderService(this.tradingService, this.aqueductOrdersService);
   }
 
   public async start(band: IStoredBand) {
-    if (bandProcessingMap[band._id]) { return; }
+    if (bandProcessingMap[band._id] === 1) { return; }
 
     bandProcessingMap[band._id] = 1;
     try {
@@ -103,16 +105,18 @@ export class BandService {
     };
   }
 
-  public async remove({ bandId, immediateCancelation }: IRemoveBandRequest) {
+  public async remove({ bandId, hardCancelation }: IRemoveBandRequest) {
     const band = await this.bandRepo.findOne({ _id: bandId });
     if (!band) {
       throw new ServerError(`no band ${bandId} found`, 404);
     }
 
-    if (immediateCancelation) {
-      const orders = await this.orderRepo.find({ bandId, state: 0 });
-      for (let order of orders) {
-        await new OrderService().cancelOrder(order);
+    const orders = await this.orderRepo.find({ bandId, state: 0 });
+    for (let order of orders) {
+      if (hardCancelation) {
+        await this.orderService.cancelOrder(order);
+      } else {
+        await this.orderService.softCancelOrder(order);
       }
     }
 
@@ -181,62 +185,6 @@ export class BandService {
     return bands.reduce((a, b) => a.spreadBps > b.spreadBps ? a : b);
   }
 
-  private async getValidatedOrder(order: IStoredOrder) {
-    // is it actually still valid?
-    // is it expired?
-    if (order.expirationUnixTimestampSec <= (new Date().getTime() / 1000)) {
-      order.state = State.Expired;
-      await this.orderRepo.update({ _id: order._id }, order);
-
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `order ${order.id} expired`,
-          severity: 'error'
-        });
-      }
-      return;
-    }
-
-    let remoteOrder: Aqueduct.Api.Order;
-    // is it invalid for some other reason?
-    try {
-      remoteOrder = await this.aqueductOrdersService.getById({ orderId: order.id });
-    } catch (err) {
-      console.error(`failed to get order by id: ${err.message}`);
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `failed to get order by id ${order.id}: ${err.message} - treating as still valid`,
-          severity: 'error'
-        });
-      }
-
-      // if the server fails, we have to treat this order as valid, otherwise we may overextend
-      return order;
-    }
-
-    if (remoteOrder.state !== 0) {
-      order.state = remoteOrder.state;
-
-      if (order.bandId) {
-        await this.logService.addBandLog({
-          bandId: order.bandId,
-          message: `order ${order.id} invalid with state ${remoteOrder.state} - removing, will refresh band`,
-          severity: 'error'
-        });
-      }
-
-      await this.orderRepo.update({ _id: order._id }, order);
-      return;
-    }
-
-    order.remainingTakerTokenAmount = remoteOrder.remainingTakerTokenAmount;
-    await this.orderRepo.update({ _id: order._id }, order);
-
-    return order.remainingTakerTokenAmount !== '0' && order;
-  }
-
   private async cycle(band: IStoredBand) {
     const market = await this.marketRepo.findOne({ _id: band.marketId });
     if (!market) {
@@ -272,7 +220,7 @@ export class BandService {
 
       for (let i = 0; i < existingOrders.length; i++) {
         let order = existingOrders[i];
-        const validatedOrder = await this.getValidatedOrder(order);
+        const validatedOrder = await this.orderService.getValidatedOrder(order);
         if (validatedOrder) {
           order = validatedOrder;
         } else {
@@ -343,10 +291,7 @@ export class BandService {
               }
             } else {
               // it's not going to lose us money (right now), soft cancel it
-              await this.tradingService.softCancelOrder({ orderHash: order.orderHash });
-              order.state = State.Canceled;
-              order.softCanceled = true;
-              await this.orderRepo.update({ _id: order._id }, order);
+              await this.orderService.softCancelOrder(order);
             }
           }
         } else {

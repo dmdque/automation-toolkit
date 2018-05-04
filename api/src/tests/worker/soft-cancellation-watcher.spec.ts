@@ -39,7 +39,12 @@ describe('SoftCancellationWatcher', () => {
       },
       updateOrder: async o => {
         return await orderRepository.update({ _id: o._id }, o);
-      }
+      },
+      softCancelOrder: async o => {
+        o.softCanceled = true;
+        await orderRepository.update({ _id: o._id }, o);
+      },
+      getValidatedOrder: async o => o
     }
   );
 

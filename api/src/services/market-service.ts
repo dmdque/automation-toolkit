@@ -8,13 +8,14 @@ import { orderRepository, State } from '../db/order-repository';
 import { ServerError } from '../errors/server-error';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
 import { toUnitAmount } from '../utils/conversion';
+import { marketWatcher } from '../worker/market-watcher';
 import { BandService } from './band-service';
 import { LogService } from './log-service';
 import { OrderService } from './order-service';
 
 export interface IStopMarketRequest {
   marketId: string;
-  immediateCancelation: boolean;
+  hardCancelation: boolean;
 }
 
 export interface IStartMarketRequest {
@@ -51,43 +52,31 @@ export class MarketService {
       throw new ServerError(`market already exists for ${market.baseTokenSymbol}/${market.quoteTokenSymbol}`, 400);
     }
 
-    return await marketRepository.create(market);
+    const createdMarket = await marketRepository.create(market);
+    marketWatcher.addMarket(createdMarket);
+    return createdMarket;
   }
 
   public async start({ marketId, passphrase }: IStartMarketRequest): Promise<IStoredMarket> {
-    await new AqueductRemote.Api.WalletService().unlockAccount({ request: { passphrase } });
-
     const market = await marketRepository.findOne({ _id: marketId });
     if (!market) {
       throw new ServerError(`market ${marketId} not found`, 404);
     }
+
+    await new AqueductRemote.Api.WalletService().unlockAccount({ request: { passphrase } });
 
     if (market.active) {
       throw new ServerError(`market ${marketId} already active`, 400);
     }
 
     this.logService.addMarketLog({
-      severity: 'info',
-      message: `Starting Market '${market.label}'`,
+      severity: 'success',
+      message: `Started Market '${market.label}'`,
       marketId: market._id
     });
-
-    const bands = await bandRepository.find({ marketId: market._id });
-    for (let i = 0; i < bands.length; i++) {
-      const band = bands[i];
-      await this.logService.addBandLog({ bandId: band._id, message: `starting band ${band._id}`, severity: 'info' });
-      this.bandService.start(band);
-    }
 
     market.active = true;
     await marketRepository.update({ _id: market._id }, market);
-
-    this.logService.addMarketLog({
-      severity: 'success',
-      message: `Successfully Started Market '${market.label}'`,
-      marketId: market._id
-    });
-
     return market;
   }
 
@@ -117,8 +106,10 @@ export class MarketService {
       await this.bandService.stop(band);
     }
 
-    if (request.immediateCancelation) {
+    if (request.hardCancelation) {
       await this.cancelMarketOrders(market._id);
+    } else {
+      await this.softCancelMarketOrders(market._id);
     }
 
     this.logService.addMarketLog({
@@ -219,6 +210,8 @@ export class MarketService {
         dateCreated: new Date()
       });
     }
+
+    return stats;
   }
 
   public async getLatestStats(marketId: string): Promise<IMarketStats> {
@@ -248,6 +241,15 @@ export class MarketService {
     if (existingOrders && existingOrders.length > 0) {
       for (let order of existingOrders) {
         await new OrderService().cancelOrder(order);
+      }
+    }
+  }
+
+  private async softCancelMarketOrders(marketId: string) {
+    const existingOrders = await orderRepository.find({ marketId, state: State.Open });
+    if (existingOrders && existingOrders.length > 0) {
+      for (let order of existingOrders) {
+        await new OrderService().softCancelOrder(order);
       }
     }
   }

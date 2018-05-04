@@ -15,7 +15,6 @@ import './controllers/markets-controller';
 import './controllers/token-pairs-controller';
 import { reportRoutes } from './report-routes';
 import { RegisterRoutes } from './routes';
-import { DefaultPriceFeed } from './services/default-price-feed';
 import { PendingAqueductService } from './services/pending-aqueduct-service';
 import { AqueductRemote } from './swagger/aqueduct-remote';
 import { Worker } from './worker/worker';
@@ -28,7 +27,6 @@ Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
 (async () => {
   await new PendingAqueductService().waitForAqueductRemote();
   config.networkId = await new AqueductRemote.Api.WalletService().getNetworkId();
-  config.priceFeed = new DefaultPriceFeed();
   new Worker().start();
 
   await tokenPairCache.getTokenPairs(config.networkId);

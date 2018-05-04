@@ -142,11 +142,11 @@ export class BandList extends React.Component<IBandListProps> {
     await this.executeRemove(band, false);
   }
 
-  private async executeRemove(band: Dashboard.Api.IStoredBand, immediateCancelation: boolean) {
+  private async executeRemove(band: Dashboard.Api.IStoredBand, hardCancelation: boolean) {
     await new Dashboard.Api.BandsService().removeBand({
       request: {
         bandId: band._id,
-        immediateCancelation
+        hardCancelation
       }
     });
     this.props.onRemove(band);

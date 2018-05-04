@@ -44,7 +44,7 @@ const models: TsoaRoute.Models = {
     "IRemoveBandRequest": {
         "properties": {
             "bandId": { "dataType": "string", "required": true },
-            "immediateCancelation": { "dataType": "boolean", "required": true },
+            "hardCancelation": { "dataType": "boolean", "required": true },
         },
     },
     "IStoredLog": {
@@ -97,7 +97,7 @@ const models: TsoaRoute.Models = {
     "IStopMarketRequest": {
         "properties": {
             "marketId": { "dataType": "string", "required": true },
-            "immediateCancelation": { "dataType": "boolean", "required": true },
+            "hardCancelation": { "dataType": "boolean", "required": true },
         },
     },
     "IMarketStats": {

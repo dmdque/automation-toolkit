@@ -17,7 +17,7 @@ export class FlashMessage extends React.Component<IFlashMessageProps> {
       <div className='flash-message-container'>
         <div className='flash-message-inner-container'>
           {flashMessageStore.messages.map(m => (
-            <div className={`flash-message ${m.type}`}>
+            <div key={m.guid} className={`flash-message ${m.type}`}>
               {m.content}
               <div className='close' onClick={handleClose(m)} />
             </div>
