@@ -5,3 +5,5 @@
 parity-data
 data
 .env
+release
+release-*.zip

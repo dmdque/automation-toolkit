@@ -1,0 +1,40 @@
+version: '3'
+services:
+  web:
+    image: ercdex/mm-web:$HASH
+    ports:
+      - "8663:8663"
+    links:
+      - api
+  api:
+    image: ercdex/mm-api:$HASH
+    ports:
+      - "8662:8662"
+    environment:
+      - AQUEDUCT_API_KEY_ID
+    links:
+      - aqueduct-remote
+    volumes:
+      - ./api/data:/app/data
+  aqueduct-remote:
+    image: ercdex/mm-aqueduct-remote:$HASH
+    expose:
+      # DO NOT CHANGE! Aqueduct remote should not be exposed to the host, only to linked containers
+      - "8700"
+    environment:
+      - AQUEDUCT_API_KEY_ID
+      - ETHEREUM_CHAIN
+    links:
+      - parity
+  parity:
+    image: ercdex/mm-parity:$HASH
+    expose:
+      # DO NOT CHANGE! JSONRPC should not be exposed to the host, only to linked containers
+      - "8545"
+    environment:
+      - ETHEREUM_CHAIN
+      - AQUEDUCT_API_KEY_ID
+    volumes:
+      - ./parity-data:/root/.local/share/io.parity.ethereum/
+    entrypoint: /bin/bash
+    command: ["/runtime-scripts/start.sh"]
