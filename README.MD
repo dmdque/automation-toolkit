@@ -6,7 +6,7 @@ The ERC dEX Automated Market Maker (AMM) allows traders to create custom trading
 
 ## System Requirements
 - The application uses `docker-compose` to run all services (local web dashboard, APIs, and a local Parity Ethereum node). Docker-compose can be installed on any MacOS, Windows, or Linux machine. Follow the instructions at https://docs.docker.com/compose/install to install docker-compose on your platform.
-    - There are [known issues](https://github.com/docker/for-mac/issues/1374) when running on some versions of Docker for Mac.  An older [edge version](https://download.docker.com/mac/edge/21438/Docker.dmg) of Docker is confirmed to run without issue.
+    - There are [known issues](https://github.com/docker/for-mac/issues/1374) when running on some versions of Docker for Mac. External network calls may fail after the application has been running for several hours. Restarting the Docker Daemon should return service.
 - `docker-compose` requires `docker`. For most use cases, choose Docker CE edition, not Docker EE.
 - Download the latest version from [Releases](https://github.com/ERCdEX/automated-market-maker/releases) and unpack the .zip in a location of your choice
 

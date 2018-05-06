@@ -74,20 +74,20 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
     return (
       <div className='market-stats-token-container'>
         <div className='market-stats-token-label'>
-          <span>{token.symbol}</span>
+          <span className='token-symbol'>{token.symbol}</span>
           <span className='token-name'>{token.name}</span>
         </div>
         <div className='market-stats-line-item'>
           {initialAmount && <span className='r-margin'>
             <span className='market-stats-amount-label'>Initial Amount</span>
-            <span>{toUnitAmount({
+            <span className='market-stats-amount'>{toUnitAmount({
               token,
               value: initialAmount
             }).toFormat(4)}</span>
           </span>}
           <span>
             <span className='market-stats-amount-label'>Min. Amount</span>
-            <span>{toUnitAmount({
+            <span className='market-stats-amount'>{toUnitAmount({
               token,
               value: minAmount
             }).toFormat(4)}</span>
@@ -96,7 +96,7 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
 
         <div className='market-stats-line-item'>
           <span className='market-stats-amount-label'>Balance</span>
-          <span>{balance
+          <span className='market-stats-amount'>{balance
             ? toUnitAmount({ token, value: balance }).toFormat(4)
             : '---'
           }</span>
@@ -104,7 +104,7 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
 
         {open && <div className='market-stats-line-item'>
           <span className='market-stats-amount-label'>Open</span>
-          <span>{open.value
+          <span className='market-stats-amount'>{open.value
             ? toUnitAmount({ token, value: open.value }).toFormat(4)
             : '---'
           }</span>

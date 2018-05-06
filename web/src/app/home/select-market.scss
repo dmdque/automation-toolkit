@@ -5,9 +5,10 @@
   border-right: $border-style;
 
   .header {
-    padding: 1rem;
-    font-size: 1.25rem;
-    border-bottom: $border-style;
+    padding: 1.25rem 1.25rem;
+    font-size: 1.5rem;
+    color: #9CA1B9;
+    font-weight: 100;
   }
 
   .fa {
@@ -21,25 +22,53 @@
   }
 
   .market-list-item {
-    padding: .5rem 1rem;
-    border-bottom: $border-style;
+    padding: .75rem .75rem;
     cursor: pointer;
     text-decoration: none;
     display: block;
+    border-left: 10px solid transparent;
 
     &:hover {
       background-color: #f3f3f3;
     }
 
     &.active {
-      border-bottom: 2px solid $primary;
-      background-color: #f7f7f7;
+      border-left-color: #9CA1B9;
+      background-color: #F5F5F7;
     }
   }
 
   .market-list-item-label {
-    font-weight: 400;
-    font-size: 1.1rem;
+    font-weight: 300;
+    font-size: 1.15rem;
     margin-bottom: .25rem;
+    color: #5B4F31;
   }
+
+  .market-list-item-sub-label {
+    color: #818499;
+  }
+
+  .add-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #B6A269;
+    cursor: pointer;
+
+    &:hover {
+      opacity: .9;
+    }
+
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.oval {
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

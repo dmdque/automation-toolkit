@@ -29,9 +29,11 @@ export class SelectMarket extends React.Component<ISelectMarketProps> {
     const markets = marketStore.markets;
     return (
       <div className='select-market fl co'>
-        <div className='header fl sb'>
+        <div className='header fl sb vc'>
           Markets
-          <i className='fa fa-plus-circle' title='Create New Market' onClick={this.onClickCreate} />
+          <div className='oval add-icon'>
+            <img src='/images/add.svg' alt='Create New Market' title='Create New Market' onClick={this.onClickCreate} />
+          </div>
         </div>
         <div className='market-list grow'>
           {!markets.length && <p className='ta-c'>---</p>}
@@ -40,7 +42,7 @@ export class SelectMarket extends React.Component<ISelectMarketProps> {
             return (
               <NavLink key={m._id} to={path} className='market-list-item' activeClassName='active'>
                 <div className='market-list-item-label'>{m.label}</div>
-                <div>{m.baseTokenSymbol}/{m.quoteTokenSymbol}</div>
+                <div className='market-list-item-sub-label'>{m.baseTokenSymbol}/{m.quoteTokenSymbol}</div>
               </NavLink>
             );
           })}

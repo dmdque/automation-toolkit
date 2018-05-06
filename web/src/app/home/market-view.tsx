@@ -64,38 +64,42 @@ export class MarketView extends React.Component<IMarketViewProps> {
     return (
       <div className='market-view grow fl co'>
         <div className='fl sb market-view-header'>
-          <div className='fl'>
-            <h1>{this.market.label}</h1>
-            <div className={`control start fl vc ${!this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStart}>
-              <i className='fa fa-play' />
-              <span>Start</span>
+          <div className='fl fe'>
+            <div className='fl v-padding'>
+              <h1>{this.market.label}</h1>
+              <div className={`control start fl vc ${!this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStart}>
+                <img src='/images/start.svg' />
+                <span>Start</span>
+              </div>
+              <div className={`control stop fl vc ${this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStop(this.market)}>
+                <img src='/images/stop.svg' />
+                <span>Stop</span>
+              </div>
+              <div className={`control fl vc`} onClick={this.onViewHistory}>
+                <img src='/images/toolsHistory.svg' />
+                <span>History</span>
+              </div>
+              <div className={`control logs fl vc`} onClick={this.onViewLogs}>
+                <img src='/images/toolLogs.svg' />
+                <span>Logs</span>
+              </div>
+              <div className={`control reports fl vc`} onClick={this.onViewReports}>
+                <i className='fa fa-book' />
+                <span>Reports</span>
+              </div>
             </div>
-            <div className={`control stop fl vc ${this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStop(this.market)}>
-              <i className='fa fa-stop' />
-              <span>Stop</span>
-            </div>
-            <div className={`control fl vc`} onClick={this.onViewHistory}>
-              <i className='fa fa-history' />
-              <span>History</span>
-            </div>
-            <div className={`control logs fl vc`} onClick={this.onViewLogs}>
-              <i className='fa fa-list' />
-              <span>Logs</span>
-            </div>
-            <div className={`control fl vc`} onClick={this.onViewReports}>
-              <i className='fa fa-book' />
-              <span>Reports</span>
-            </div>
-            <a className={`control fl vc`} href={this.marketUrl} target='_blank'>
+            <div className='separator' />
+            <a className='to-market control fl vc' href={this.marketUrl} target='_blank'>
               <i className='fa fa-external-link' />
               <span>Live Market</span>
             </a>
           </div>
           <div className='fl'>
-            <div className={`control fl vc ${this.isStarted ? 'inactive' : 'active'}`} onClick={this.onDelete(this.market)}
+            <div className={`fl vc ${this.isStarted ? 'inactive' : 'active'}`} onClick={this.onDelete(this.market)}
               title={this.isStarted ? 'Market is currently running - stop first to delete' : undefined}>
-              <i className='fa fa-trash' />
-              <span>Delete</span>
+              <div className='oval delete-market'>
+                <img src='/images/toolDelete.svg' alt='Delete Market' />
+              </div>
             </div>
           </div>
         </div>

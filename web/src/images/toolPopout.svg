@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="25px" height="25px" viewBox="0 0 25 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>B78FF9BF-C445-4610-95CA-085A5EE79A80</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Product" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="marketmaker" transform="translate(-1452.000000, -132.000000)" fill="#FFFFFF" fill-rule="nonzero">
+            <g id="button_buy" transform="translate(1435.000000, 120.000000)">
+                <path d="M40,15.4142136 L29.6971108,25.7171028 L28.2828972,24.3028892 L38.5857864,14 L33,14 L33,12 L42,12 L42,21 L40,21 L40,15.4142136 Z M38,35 L38,23.75 L40,23.75 L40,37 L17,37 L17,14 L30.25,14 L30.25,16 L19,16 L19,35 L38,35 Z" id="tooPopout"></path>
+            </g>
+        </g>
+    </g>
+</svg>

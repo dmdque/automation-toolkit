@@ -1,27 +1,30 @@
 @import '../../common/shared';
 
 .market-view {
-  padding: 1rem;
+  padding: 0 1rem 1rem;
 
   .market-view-header {
-    padding-bottom: .5rem;
     border-bottom: $border-style;
   }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     margin-right: 1rem;
+    color: #2B2C33;
+    font-weight: 300;
   }
 
   .control {
-    padding: 0 1rem;
-    font-size: 1rem;
+    padding: 0 1.25rem;
+    font-size: .8rem;
     text-transform: uppercase;
     cursor: pointer;
-    color: black;
+    color: #2B2C33;
     text-decoration: none;
 
-    .fa {
+    img {
+      width: 18px;
+      height: 18px;
       margin-right: .5rem;
     }
 
@@ -35,16 +38,53 @@
       color: #bbbbbb;
     }
 
-    &.start {
-      &.active {
-        color: $primary;
+    &.stop {
+      img {
+        width: 16px;
+        height: 16px;
+        margin-right: .75rem;    
       }
     }
 
-    &.stop {
-      &.active {
-        color: #9e0808;
+    &.reports {
+      .fa {
+        margin-right: .5rem;
+        font-size: 1rem;
       }
     }
+  }
+
+  .delete-market {
+    width: 32px;
+    height: 32px;
+    background-color: #9CA1B9;
+    cursor: pointer;
+
+    &:hover {
+      opacity: .9;
+    }
+    
+    img {
+      width: 16px;
+      height: 16px;
+      margin-right: 0;
+    }
+  }
+
+  .to-market {
+    background-color: #B6A269;
+    margin: 1rem 1rem 1rem 1.5rem;
+    color: white;
+    padding-left: 1rem;
+
+    .fa {
+      margin-right: .5rem;
+    }
+  }
+
+  .separator {
+    width: 1px;
+    background-color: #efefef;
+    margin: .75rem 0;
   }
 }

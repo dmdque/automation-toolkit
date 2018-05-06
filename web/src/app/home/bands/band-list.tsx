@@ -70,8 +70,8 @@ export class BandList extends React.Component<IBandListProps> {
 
           return (
             <div className='fl fe r-padding fw'>
-              <span className='link' onClick={onViewLogs}>Logs</span>
-              <span className='link' onClick={onRemoveBand}>Remove</span>
+              <img className='band-logs' title='Logs' src='/images/bandLogs.svg' onClick={onViewLogs} />
+              <img className='band-remove' title='Remove' src='/images/bandRemove.svg' onClick={onRemoveBand} />
             </div>
           );
         },
@@ -91,13 +91,15 @@ export class BandList extends React.Component<IBandListProps> {
 
     const bands = this.props.bands;
     return (
-      <div className='band-list fl co grow'>
-        <div className='band-list-title uppercase'>{this.props.side} Bands</div>
-        <div className='scrollable-grid-container grow'>
-          <ScrollableGrid models={bands} columns={columns} initialScrollPosition={initialScrollPosition}
-            rowContent={this.getRowContent} bodyStyle={bodyStyle}
-            className={this.props.side === 'sell' ? 'align-end' : undefined} />
-          {this.createRow()}
+      <div className='fl co grow'>
+        <div className='band-list fl co grow'>
+          <div className='band-list-title uppercase'>{this.props.side} Bands</div>
+          <div className='scrollable-grid-container grow'>
+            <ScrollableGrid models={bands} columns={columns} initialScrollPosition={initialScrollPosition}
+              rowContent={this.getRowContent} bodyStyle={bodyStyle}
+              className={this.props.side === 'sell' ? 'align-end' : undefined} />
+            {this.createRow()}
+          </div>
         </div>
         {this.viewingBand && <BandLogViewer bandId={this.viewingBand._id} onClose={onCloseBandLogs} />}
         {this.selectStopBehaviorProps && <SelectStopBehavior {...this.selectStopBehaviorProps} />}
