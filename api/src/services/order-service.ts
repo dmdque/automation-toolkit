@@ -1,6 +1,7 @@
 import { Aqueduct } from 'aqueduct';
 import { IStoredOrder, orderRepository, State } from '../db/order-repository';
 import { AqueductRemote } from '../swagger/aqueduct-remote';
+import { GasService } from './gas-service';
 import { LogService } from './log-service';
 
 export interface IOrderService {
@@ -22,10 +23,16 @@ export class OrderService implements IOrderService {
     const marketId = order.marketId;
     try {
       console.log('starting cancelation...');
-      const txHash = await this.tradingService.cancelOrder({ orderHash: order.orderHash });
+      const gasPrice = await new GasService().getGasPrice();
+      const txHash = await this.tradingService.cancelOrder({
+        request: {
+          orderHash: order.orderHash,
+          gasPrice: gasPrice && gasPrice.toString()
+        }
+      });
       console.log('finished cancelation...');
 
-      await this.logService.addCancelLog({ txHash, order, marketId  });
+      await this.logService.addCancelLog({ txHash, order, marketId });
       await this.logService.addMarketLog({
         severity: 'info',
         marketId,

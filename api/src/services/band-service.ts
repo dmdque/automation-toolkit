@@ -269,15 +269,12 @@ export class BandService {
           if (!movedOrder) {
             if (status === 'loss-risk') {
               try {
-                const txHash = await this.tradingService.cancelOrder({ orderHash: order.orderHash });
-                await this.logService.addCancelLog({ txHash, order, marketId: band.marketId });
+                await this.orderService.cancelOrder(order);
                 await this.logService.addBandLog({
                   severity: 'info',
                   bandId: band._id,
-                  message: `band ${band._id} canceled order due to price changes ${order.id} w/ tx ${txHash}`
+                  message: `band ${band._id} canceled order due to price changes ${order.id}`
                 });
-
-                console.log(`band ${band._id} canceled order due to price changes ${order.id} w/ tx ${txHash}`);
 
                 order.state = State.Canceled;
                 await this.orderRepo.update({ _id: order._id }, order);

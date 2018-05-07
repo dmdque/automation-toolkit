@@ -48,6 +48,11 @@ export namespace AqueductRemote {
       side: string;
     }
 
+    export interface ICancelOrderRequest {
+      orderHash: string;
+      gasPrice?: string;
+    }
+
     export interface ICancelReceipt {
       gasCost: string;
       status: number;
@@ -73,7 +78,7 @@ export namespace AqueductRemote {
     }
 
     export interface ITradingCancelOrderParams {
-      orderHash: string;
+      request: ICancelOrderRequest;
     }
 
     export interface ITradingSoftCancelOrderParams {
@@ -117,8 +122,10 @@ export namespace AqueductRemote {
       public async cancelOrder(params: ITradingCancelOrderParams) {
         const requestParams: IRequestParams = {
           method: 'POST',
-          url: `${baseApiUrl}/api/trading/cancel_order/${params.orderHash}`
+          url: `${baseApiUrl}/api/trading/cancel_order`
         };
+
+        requestParams.body = params.request;
         return this.executeRequest<string>(requestParams);
       }
 

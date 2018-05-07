@@ -33,16 +33,13 @@
     }
 
     &.inactive {
-      opacity: 1;
-      cursor: not-allowed;
-      color: #bbbbbb;
+      opacity: .5;
     }
 
     &.stop {
-      img {
-        width: 16px;
-        height: 16px;
-        margin-right: .75rem;    
+      .fa {
+        color: #cc3c41;  
+        margin-right: .75rem;
       }
     }
 

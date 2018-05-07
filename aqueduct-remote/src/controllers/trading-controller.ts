@@ -41,6 +41,11 @@ export interface IOrder {
   source: string;
 }
 
+export interface ICancelOrderRequest {
+  orderHash: string;
+  gasPrice?: string;
+}
+
 @Route('trading')
 export class TradingController {
   @Post('limit_order')
@@ -70,18 +75,31 @@ export class TradingController {
     return order;
   }
 
-  @Post('cancel_order/{orderHash}')
+  @Post('cancel_order')
   @Tags('Trading')
-  public async cancelOrder(orderHash: string): Promise<string> {
+  public async cancelOrder(@Body() request: ICancelOrderRequest): Promise<string> {
+    let gasPrice: BigNumber | undefined = undefined;
+    if (request.gasPrice) {
+      try {
+        gasPrice = new BigNumber(request.gasPrice);
+        if (!gasPrice.isInteger()) {
+          throw new ServerError(`gasPrice should be an integer`, 400);
+        }
+      } catch {
+        throw new ServerError(`gasPrice should be an integer`, 400);
+      }
+    }
+
     const txHash = await new CancelOrder({
       nodeUrl: config.nodeUrl,
-      orderHash
+      orderHash: request.orderHash,
+      gasPrice
     }).execute();
 
     // immediately removes it from the book
     await new SoftCancelOrder({
       nodeUrl: config.nodeUrl,
-      orderHash
+      orderHash: request.orderHash
     }).execute();
 
     return txHash;

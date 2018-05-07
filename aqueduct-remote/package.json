@@ -17,7 +17,7 @@
     "@types/node": "^9.6.4",
     "@types/request-promise": "^4.1.41",
     "@types/request-promise-native": "^1.0.14",
-    "aqueduct": "^1.1.23",
+    "aqueduct": "^1.1.25",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "html5-websocket": "^2.0.2",

@@ -41,6 +41,12 @@ const models: TsoaRoute.Models = {
             "side": { "dataType": "string", "required": true },
         },
     },
+    "ICancelOrderRequest": {
+        "properties": {
+            "orderHash": { "dataType": "string", "required": true },
+            "gasPrice": { "dataType": "string" },
+        },
+    },
     "ICancelReceipt": {
         "properties": {
             "gasCost": { "dataType": "string", "required": true },
@@ -86,10 +92,10 @@ export function RegisterRoutes(app: any) {
             const promise = controller.createLimitOrder.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
-    app.post('/api/trading/cancel_order/:orderHash',
+    app.post('/api/trading/cancel_order',
         function(request: any, response: any, next: any) {
             const args = {
-                orderHash: { "in": "path", "name": "orderHash", "required": true, "dataType": "string" },
+                request: { "in": "body", "name": "request", "required": true, "ref": "ICancelOrderRequest" },
             };
 
             let validatedArgs: any[] = [];

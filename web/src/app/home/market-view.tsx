@@ -72,7 +72,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
                 <span>Start</span>
               </div>
               <div className={`control stop fl vc ${this.isStarted ? 'active' : 'inactive'}`} onClick={this.onStop(this.market)}>
-                <img src='/images/stop.svg' />
+                <i className='fa fa-stop' />
                 <span>Stop</span>
               </div>
               <div className={`control fl vc`} onClick={this.onViewHistory}>
