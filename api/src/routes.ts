@@ -60,10 +60,10 @@ const models: TsoaRoute.Models = {
         "properties": {
             "label": { "dataType": "string", "required": true },
             "baseTokenSymbol": { "dataType": "string", "required": true },
-            "initialBaseAmount": { "dataType": "string", "required": true },
+            "maxBaseAmount": { "dataType": "string", "required": true },
             "minBaseAmount": { "dataType": "string", "required": true },
             "quoteTokenSymbol": { "dataType": "string", "required": true },
-            "initialQuoteAmount": { "dataType": "string", "required": true },
+            "maxQuoteAmount": { "dataType": "string", "required": true },
             "minQuoteAmount": { "dataType": "string", "required": true },
             "minEthAmount": { "dataType": "string", "required": true },
             "active": { "dataType": "boolean" },
@@ -74,10 +74,10 @@ const models: TsoaRoute.Models = {
         "properties": {
             "label": { "dataType": "string", "required": true },
             "baseTokenSymbol": { "dataType": "string", "required": true },
-            "initialBaseAmount": { "dataType": "string", "required": true },
+            "maxBaseAmount": { "dataType": "string", "required": true },
             "minBaseAmount": { "dataType": "string", "required": true },
             "quoteTokenSymbol": { "dataType": "string", "required": true },
-            "initialQuoteAmount": { "dataType": "string", "required": true },
+            "maxQuoteAmount": { "dataType": "string", "required": true },
             "minQuoteAmount": { "dataType": "string", "required": true },
             "minEthAmount": { "dataType": "string", "required": true },
             "active": { "dataType": "boolean" },
@@ -142,6 +142,20 @@ const models: TsoaRoute.Models = {
             "priceDecimals": { "dataType": "double", "required": true },
             "baseVolume": { "dataType": "string", "required": true },
             "quoteVolume": { "dataType": "string", "required": true },
+        },
+    },
+    "ITokenTicker": {
+        "properties": {
+            "id": { "dataType": "string", "required": true },
+            "name": { "dataType": "string", "required": true },
+            "symbol": { "dataType": "string", "required": true },
+            "usdPrice": { "dataType": "string", "required": true },
+            "btcPrice": { "dataType": "string", "required": true },
+            "hourlyPercentageChange": { "dataType": "string", "required": true },
+            "dailyPercentageChange": { "dataType": "string", "required": true },
+            "weeklyPercentageChange": { "dataType": "string", "required": true },
+            "dailyVolume": { "dataType": "string", "required": true },
+            "priceEth": { "dataType": "string", "required": true },
         },
     },
 };
@@ -520,6 +534,24 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.get.apply(controller, validatedArgs);
+            promiseHandler(controller, promise, response, next);
+        });
+    app.get('/api/token-pairs/tickers',
+        function(request: any, response: any, next: any) {
+            const args = {
+            };
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new TokenPairsController();
+
+
+            const promise = controller.getTickers.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
 

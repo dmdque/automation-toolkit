@@ -136,14 +136,14 @@ export class BandService {
         throw new Error(`balance is lower than minimum quote token amount: ${balance.toString()}/${market.minQuoteAmount}`);
       }
 
-      return balance.lessThan(market.initialQuoteAmount) ? balance : new BigNumber(market.initialQuoteAmount);
+      return balance.lessThan(market.maxQuoteAmount) ? balance : new BigNumber(market.maxQuoteAmount);
     } else {
       const balance = new BigNumber(await this.walletService.getBalance({ tokenAddress: tokenPair.tokenA.address }));
       if (balance.lessThan(market.minBaseAmount)) {
         throw new Error(`balance is lower than minimum base token amount: ${balance.toString()}/${market.minBaseAmount}`);
       }
 
-      return balance.lessThan(market.initialBaseAmount) ? balance : new BigNumber(market.initialBaseAmount);
+      return balance.lessThan(market.maxBaseAmount) ? balance : new BigNumber(market.maxBaseAmount);
     }
   }
 

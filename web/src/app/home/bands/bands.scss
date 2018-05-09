@@ -1,3 +1,16 @@
 .bands {
+  .midpoint-bar {
+    font-weight: 500;  
+    font-size: .75rem;
+    text-transform: uppercase;
 
+    .label {
+      color: #9CA1B9;
+    }
+
+    .value {
+      color: black;
+      margin-left: .5rem;
+    }
+  }
 }

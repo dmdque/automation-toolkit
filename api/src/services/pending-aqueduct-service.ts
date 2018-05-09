@@ -12,7 +12,7 @@ export class PendingAqueductService {
   public async waitForAqueductRemote() {
     while (true) {
       try {
-        await this.walletService.getNetworkId();
+        await this.walletService.getNetwork();
         console.log('aqueduct remote ready');
         return;
       } catch (err) {

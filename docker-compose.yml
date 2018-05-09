@@ -12,8 +12,6 @@ services:
     build: ./api
     ports:
       - "8662:8662"
-    environment:
-      - AQUEDUCT_API_KEY_ID
     links:
       - aqueduct-remote
     volumes:
@@ -26,7 +24,6 @@ services:
       # DO NOT CHANGE! Aqueduct remote should not be exposed to the host, only to linked containers
       - "8700"
     environment:
-      - AQUEDUCT_API_KEY_ID
       - ETHEREUM_CHAIN
     links:
       - parity
@@ -40,7 +37,6 @@ services:
       - "8545"
     environment:
       - ETHEREUM_CHAIN
-      - AQUEDUCT_API_KEY_ID
     volumes:
       - ./parity-data:/root/.local/share/io.parity.ethereum/
     entrypoint: /bin/bash

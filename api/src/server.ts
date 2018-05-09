@@ -6,6 +6,7 @@ const webSocket = require('html5-websocket');
 import * as http from 'http';
 import * as methodOverride from 'method-override';
 import 'reflect-metadata';
+import { tickerDataCache } from './cache/ticker-data-cache';
 import { tokenPairCache } from './cache/token-pair-cache';
 import { config } from './config';
 import './controllers/accounts-controller';
@@ -22,14 +23,17 @@ import { Worker } from './worker/worker';
 (global as any).WebSocket = webSocket;
 
 AqueductRemote.Initialize({ host: 'aqueduct-remote:8700' });
-Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
+Aqueduct.Initialize();
 
 (async () => {
   await new PendingAqueductService().waitForAqueductRemote();
-  config.networkId = await new AqueductRemote.Api.WalletService().getNetworkId();
+  const network = await new AqueductRemote.Api.WalletService().getNetwork();
+  config.networkId = network.id;
+  config.chain = network.chain as 'kovan' | 'foundation';
   new Worker().start();
 
   await tokenPairCache.getTokenPairs(config.networkId);
+  await tickerDataCache.initialize();
 
   const app = express();
   const server = http.createServer(app);

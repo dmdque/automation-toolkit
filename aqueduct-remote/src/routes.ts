@@ -70,6 +70,12 @@ const models: TsoaRoute.Models = {
             "error": { "dataType": "string" },
         },
     },
+    "INetwork": {
+        "properties": {
+            "id": { "dataType": "double", "required": true },
+            "chain": { "dataType": "string", "required": true },
+        },
+    },
 };
 
 export function RegisterRoutes(app: any) {
@@ -260,7 +266,7 @@ export function RegisterRoutes(app: any) {
             const promise = controller.getNodeHealth.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
-    app.get('/api/wallet/network_id',
+    app.get('/api/wallet/network',
         function(request: any, response: any, next: any) {
             const args = {
             };
@@ -275,7 +281,7 @@ export function RegisterRoutes(app: any) {
             const controller = new WalletController();
 
 
-            const promise = controller.getNetworkId.apply(controller, validatedArgs);
+            const promise = controller.getNetwork.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
 

@@ -170,8 +170,8 @@ describe('BandService', () => {
       }
     }
 
-    const baseBalance = new BigNumber(validMarket.initialBaseAmount).toString();
-    const quoteBalance = new BigNumber(validMarket.initialQuoteAmount).toString();
+    const baseBalance = new BigNumber(validMarket.maxBaseAmount).toString();
+    const quoteBalance = new BigNumber(validMarket.maxQuoteAmount).toString();
 
     let orderRequest: AqueductRemote.Api.ILimitOrderRequest | undefined;
 

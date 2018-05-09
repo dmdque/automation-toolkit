@@ -4,12 +4,14 @@ import { BigNumber } from 'bignumber.js';
 import { Form } from 'common/form/form';
 import { Select } from 'common/form/select';
 import { TextInput } from 'common/form/text-input';
+import { HoverTooltip } from 'common/hover-tooltip';
 import { Modal } from 'common/modal/modal';
 import { isValidFloat } from 'common/utils/numbers';
 import { toBaseUnitAmount, toUnitAmount } from 'common/utils/unit-amount';
 import { autorun, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { tickerStore } from 'stores/ticker-store';
 import { tokenPairStore } from 'stores/token-pair-store';
 import { ITokenReserveParams, TokenReserveInput } from './token-reserve-input';
 
@@ -45,11 +47,11 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
 
   public render() {
     const onLabelChange: React.ChangeEventHandler<HTMLInputElement> = event => this.label = event.target.value;
-
+    const minEthBalanceError = this.minEthBalanceError();
     return (
       <Modal onClose={this.props.onClose} title='Create Market'>
         <Form onSubmit={this.onSubmit}>
-          <TextInput label='Label' placeholder='Label' autoFocus={true} required={true}
+          <TextInput label={<span>Label <HoverTooltip tooltipContent='A human-readable name to describe this market' width='300px' /></span>} placeholder='Label' autoFocus={true} required={true}
             value={this.label} onChange={onLabelChange} />
           <Select label='Token Pair' onChange={this.onTokenPairChange} required={true}>
             <option value='' selected={true} disabled={true} hidden={true}>Select Token Pair</option>
@@ -64,15 +66,17 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
               balance={this.balances.quoteBalance} />
             <div className='token-reserve-input'>
               <label className='title sb'>
-                <span>Minimum Ether Balance</span>
+                <span>Minimum Ether Balance <HoverTooltip tooltipContent='Minimum Ether amount to keep in reserve. If owned Ether dips below this amount, all open positions will be canceled.' width='300px' /></span>
                 <span className='balance-container'>
                   <span className='uppercase balance-label'>Balance</span>
-                  {toUnitAmount({ token: { decimals: 18 }, value: this.balances.ethBalance }).toFormat(4)}
+                  {toUnitAmount({ token: { decimals: 18 }, value: this.balances.ethBalance }).toFormat(4)}&nbsp;
+                  (~{tickerStore.getTokenUsdEquivalent({ decimals: 18, symbol: 'WETH' }, this.balances.ethBalance)} USD)
                 </span>
               </label>
             </div>
             <TextInput type='text' placeholder='Minimum Ether Balance'
-              onChange={this.onMinEthBalanceChange} value={this.minEthBalance} required={true} errorMessage={this.minEthBalanceError().error} />
+              onChange={this.onMinEthBalanceChange} value={this.minEthBalance} required={true} errorMessage={minEthBalanceError.error}
+              infoMessage={minEthBalanceError.value && <span>~{tickerStore.getTokenUsdEquivalent({ decimals: 18, symbol: 'WETH'}, minEthBalanceError.value)} USD</span>} />
           </div>}
           <div>
             <button className='button primary fw' type='submit' disabled={!this.isValid()}>Submit</button>
@@ -117,9 +121,9 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
           baseTokenSymbol: tokenA.symbol,
           quoteTokenSymbol: tokenB.symbol,
           minBaseAmount: baseRes.min,
-          initialBaseAmount: baseRes.initial,
+          maxBaseAmount: baseRes.max,
           minQuoteAmount: quoteRes.min,
-          initialQuoteAmount: quoteRes.initial,
+          maxQuoteAmount: quoteRes.max,
           minEthAmount: minEthAmount.toString()
         }
       });
@@ -154,6 +158,10 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
     const value = toBaseUnitAmount({ token: { decimals: 18 }, value: this.minEthBalance });
     if (value.isGreaterThanOrEqualTo((this.balances as IBalances).ethBalance)) {
       return { error: 'Insufficient balance' };
+    }
+
+    if (value.isLessThan(0)) {
+      return { error: 'Must be a positive number' };
     }
 
     return { value };

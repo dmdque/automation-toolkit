@@ -4,9 +4,11 @@ import { ISelectStopBehaviorProps, SelectStopBehavior } from 'app/home/select-st
 import { TextInput } from 'common/form/text-input';
 import { IScrollableGridColumn, ScrollableGrid } from 'common/grid/scrollable-grid';
 import { isValidInt } from 'common/utils/numbers';
+import { getAbsoluteSpread } from 'common/utils/prices';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { tickerStore } from 'stores/ticker-store';
 import { BandLogViewer } from '../log-viewer/band-log-viewer';
 import './band-list.scss';
 
@@ -37,6 +39,21 @@ export class BandList extends React.Component<IBandListProps> {
 
   public render() {
     const columns: IScrollableGridColumn<Dashboard.Api.IStoredBand>[] = [
+      {
+        header: 'Approx. Price',
+        getElement: b => {
+          const marketPrice = tickerStore.getMarketPrice(this.props.tokenPair);
+          if (!marketPrice) { return <span>-</span>; }
+
+          const absoluteSpread = getAbsoluteSpread(marketPrice, b.spreadBps);
+          if (b.side === 'buy') {
+            return <span>{marketPrice.minus(absoluteSpread).toFormat(this.props.tokenPair.priceDecimals)}</span>;
+          } else {
+            return <span>{marketPrice.plus(absoluteSpread).toFormat(this.props.tokenPair.priceDecimals)}</span>;
+          }
+        },
+        widthPoints: 1
+      },
       {
         header: 'Spread BPS',
         getElement: b => <span>{b.spreadBps}</span>,

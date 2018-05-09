@@ -72,6 +72,11 @@ export namespace AqueductRemote {
       error?: string;
     }
 
+    export interface INetwork {
+      id: number;
+      chain: string;
+    }
+
 
     export interface ITradingCreateLimitOrderParams {
       request: ILimitOrderRequest;
@@ -152,7 +157,7 @@ export namespace AqueductRemote {
       getBalance(params: IWalletGetBalanceParams): Promise<string>;
       getEthBalance(): Promise<string>;
       getNodeHealth(): Promise<INodeHealth>;
-      getNetworkId(): Promise<number>;
+      getNetwork(): Promise<INetwork>;
     }
 
     export class WalletService extends ApiService implements IWalletService {
@@ -213,12 +218,12 @@ export namespace AqueductRemote {
         return this.executeRequest<INodeHealth>(requestParams);
       }
 
-      public async getNetworkId() {
+      public async getNetwork() {
         const requestParams: IRequestParams = {
           method: 'GET',
-          url: `${baseApiUrl}/api/wallet/network_id`
+          url: `${baseApiUrl}/api/wallet/network`
         };
-        return this.executeRequest<number>(requestParams);
+        return this.executeRequest<INetwork>(requestParams);
       }
     }
   }

@@ -1,9 +1,6 @@
 import { DefaultPriceFeed } from './services/default-price-feed';
 import { PriceFeed } from './services/price-feed';
 
-const apiKeyId = process.env['AQUEDUCT_API_KEY_ID'];
-if (!apiKeyId) { throw new Error(`AQUEDUCT_API_KEY_ID env var not set`); }
-
 export type GasPriceSetting = 'safelow' | 'standard' | 'fast';
 
 const gasPrice = process.env['GAS_PRICE'] as GasPriceSetting;
@@ -14,14 +11,14 @@ if (gasPrice && gasPriceSettings.indexOf(gasPrice) !== -1) {
 
 export interface IConfig {
   networkId: number;
-  apiKeyId: string;
   priceFeed: PriceFeed;
   gasSetting: GasPriceSetting;
+  chain: 'kovan' | 'foundation';
 }
 
 export const config: IConfig = {
   networkId: undefined as any,
-  apiKeyId,
+  chain: undefined as any,
   priceFeed: new DefaultPriceFeed(),
   gasSetting: gasPrice || 'standard'
 };

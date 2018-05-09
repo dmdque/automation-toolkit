@@ -59,10 +59,10 @@ export namespace Dashboard {
     export interface IStoredMarket {
       label: string;
       baseTokenSymbol: string;
-      initialBaseAmount: string;
+      maxBaseAmount: string;
       minBaseAmount: string;
       quoteTokenSymbol: string;
-      initialQuoteAmount: string;
+      maxQuoteAmount: string;
       minQuoteAmount: string;
       minEthAmount: string;
       active?: boolean;
@@ -72,10 +72,10 @@ export namespace Dashboard {
     export interface IMarket {
       label: string;
       baseTokenSymbol: string;
-      initialBaseAmount: string;
+      maxBaseAmount: string;
       minBaseAmount: string;
       quoteTokenSymbol: string;
-      initialQuoteAmount: string;
+      maxQuoteAmount: string;
       minQuoteAmount: string;
       minEthAmount: string;
       active?: boolean;
@@ -133,6 +133,19 @@ export namespace Dashboard {
       priceDecimals: number;
       baseVolume: string;
       quoteVolume: string;
+    }
+
+    export interface ITokenTicker {
+      id: string;
+      name: string;
+      symbol: string;
+      usdPrice: string;
+      btcPrice: string;
+      hourlyPercentageChange: string;
+      dailyPercentageChange: string;
+      weeklyPercentageChange: string;
+      dailyVolume: string;
+      priceEth: string;
     }
 
 
@@ -383,6 +396,14 @@ export namespace Dashboard {
           url: `${baseApiUrl}/api/token-pairs`
         };
         return this.executeRequest<ITokenPair[]>(requestParams);
+      }
+
+      public async getTickers() {
+        const requestParams: IRequestParams = {
+          method: 'GET',
+          url: `${baseApiUrl}/api/token-pairs/tickers`
+        };
+        return this.executeRequest<ITokenTicker[]>(requestParams);
       }
     }
   }

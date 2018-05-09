@@ -11,6 +11,7 @@
     "generate:client": "ts-node ./src/swagger/generate-client.ts --baseApiUrl=http://localhost:8662 --outputPath api/api.ts --namespace Dashboard"
   },
   "dependencies": {
+    "@types/classnames": "^2.2.3",
     "@types/express": "^4.11.1",
     "@types/handlebars": "^4.0.37",
     "@types/node": "^8.0.31",
@@ -21,6 +22,7 @@
     "@types/superagent": "^3.5.7",
     "@types/yargs": "^11.0.0",
     "bignumber.js": "^6.0.0",
+    "classnames": "^2.2.5",
     "clean-webpack-plugin": "^0.1.16",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^0.28.7",

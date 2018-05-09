@@ -5,6 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { HashRouter } from 'react-router-dom';
 import { accountStore } from 'stores/account-store';
 import { marketStore } from 'stores/market-store';
+import { tickerStore } from 'stores/ticker-store';
 import './index.scss';
 import { tokenPairStore } from './stores/token-pair-store';
 
@@ -15,7 +16,8 @@ Dashboard.Initialize({ host: 'localhost:8662' });
     await Promise.all([
       tokenPairStore.initialize(),
       marketStore.initialize(),
-      accountStore.initialize()
+      accountStore.initialize(),
+      tickerStore.initialize()
     ]);
   } catch (err) { console.error(err); }
 

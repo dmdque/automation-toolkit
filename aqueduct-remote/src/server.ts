@@ -6,7 +6,6 @@ import * as methodOverride from 'method-override';
 import 'reflect-metadata';
 // tslint:disable-next-line
 const webSocket = require('html5-websocket');
-import { config } from './config';
 import './controllers/trading-controller';
 import './controllers/wallet-controller';
 import { RegisterRoutes } from './routes';
@@ -14,7 +13,7 @@ import { waitForParity } from './wait-for-parity';
 
 (global as any).WebSocket = webSocket;
 
-Aqueduct.Initialize({ apiKeyId: config.apiKeyId });
+Aqueduct.Initialize();
 
 (async () => {
   await waitForParity();

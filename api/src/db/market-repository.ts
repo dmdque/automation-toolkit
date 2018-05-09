@@ -19,10 +19,10 @@ export interface ITokenPair {
 export interface IMarket {
   label: string;
   baseTokenSymbol: string;
-  initialBaseAmount: string;
+  maxBaseAmount: string;
   minBaseAmount: string;
   quoteTokenSymbol: string;
-  initialQuoteAmount: string;
+  maxQuoteAmount: string;
   minQuoteAmount: string;
   minEthAmount: string;
   active?: boolean;

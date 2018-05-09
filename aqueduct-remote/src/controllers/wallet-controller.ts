@@ -4,6 +4,11 @@ import { IImportAccountRequest, ParityService } from '../services/parity-service
 import { INodeHealth, IUnlockAccountParams, Web3Service } from '../services/web3-service';
 import { ZeroExService } from '../services/zero-ex-service';
 
+export interface INetwork {
+  id: number;
+  chain: string;
+}
+
 @Route('wallet')
 export class WalletController {
   @Get('account')
@@ -43,9 +48,12 @@ export class WalletController {
     return await new Web3Service().getParityNodeHealth();
   }
 
-  @Get('network_id')
+  @Get('network')
   @Tags('Wallet')
-  public getNetworkId() {
-    return config.networkId;
+  public getNetwork(): INetwork {
+    return {
+      id: config.networkId,
+      chain: config.chain
+    };
   }
 }

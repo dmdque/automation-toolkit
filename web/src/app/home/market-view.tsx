@@ -1,5 +1,6 @@
 import { Dashboard } from 'api/api';
 import { flashMessageStore } from 'app/flash-message/flash-message-store';
+import { ConfirmModal, IConfirmModalProps } from 'common/modal/confirm-modal';
 import { getPath } from 'common/paths';
 import { History } from 'history';
 import { observable } from 'mobx';
@@ -36,6 +37,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
   @observable private isViewingHistory = false;
   @observable private isViewingReports = false;
   @observable private confirmStart = false;
+  @observable private confirmDeleteProps?: IConfirmModalProps;
 
   constructor(public readonly props: IMarketViewProps) {
     super(props);
@@ -84,13 +86,13 @@ export class MarketView extends React.Component<IMarketViewProps> {
                 <span>Logs</span>
               </div>
               <div className={`control reports fl vc`} onClick={this.onViewReports}>
-                <i className='fa fa-book' />
+                <img src='/images/reports.svg' />
                 <span>Reports</span>
               </div>
             </div>
             <div className='separator' />
             <a className='to-market control fl vc' href={this.marketUrl} target='_blank'>
-              <i className='fa fa-external-link' />
+              <img src='/images/toolPopout.svg' />
               <span>Live Market</span>
             </a>
           </div>
@@ -111,6 +113,9 @@ export class MarketView extends React.Component<IMarketViewProps> {
         {this.selectStopBehaviorProps && <SelectStopBehavior {...this.selectStopBehaviorProps} />}
         {this.confirmStart && <EnterPassphraseModal message='Enter your account passphrase to start the market'
           onClose={this.onCloseEnterPassphrase} onSubmit={this.startMarket(this.market)} submitText='Start Market' />}
+        {this.confirmDeleteProps && <ConfirmModal {...this.confirmDeleteProps}>
+          Are you sure you want to remove this market? This action is irriversible.
+          </ConfirmModal>}
       </div>
     );
   }
@@ -129,20 +134,24 @@ export class MarketView extends React.Component<IMarketViewProps> {
   }
 
   private readonly onDelete = (market: Dashboard.Api.IStoredMarket) => async () => {
-    try {
-      await new Dashboard.Api.MarketsService().deleteMarket({ marketId: market._id });
-      flashMessageStore.addMessage({
-        content: `Market '${market.label}' successfully deleted.`,
-        type: 'success'
-      });
-      await marketStore.initialize();
-      this.loadMarket();
-    } catch (err) {
-      flashMessageStore.addMessage({
+    this.confirmDeleteProps = {
+      title: 'Remove Market',
+      onClose: () => this.confirmDeleteProps = undefined,
+      onError: (err) => flashMessageStore.addMessage({
         content: err.message,
         type: 'error'
-      });
-    }
+      }),
+      submitText: 'Remove Market',
+      onSubmit: async () => {
+        await new Dashboard.Api.MarketsService().deleteMarket({ marketId: market._id });
+        flashMessageStore.addMessage({
+          content: `Market '${market.label}' successfully deleted.`,
+          type: 'success'
+        });
+        await marketStore.initialize();
+        this.loadMarket();
+      }
+    };
   }
 
   private readonly startMarket = (market: Dashboard.Api.IStoredMarket) => async (passphrase: string) => {

@@ -3,6 +3,7 @@ import { toUnitAmount } from 'common/utils/unit-amount';
 import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import * as React from 'react';
+import { tickerStore } from 'stores/ticker-store';
 import './market-stats.scss';
 
 interface IMarketStatsProps {
@@ -13,7 +14,7 @@ interface IMarketStatsProps {
 interface ITokenStatsParams {
   token: { decimals: number; symbol: string; name: string };
   minAmount: string;
-  initialAmount?: string;
+  maxAmount?: string;
   balance?: string;
   open?: {
     value?: string;
@@ -46,7 +47,7 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
         {this.tokenStat({
           token: this.props.tokenPair.tokenA,
           minAmount: this.props.market.minBaseAmount,
-          initialAmount: this.props.market.initialBaseAmount,
+          maxAmount: this.props.market.maxBaseAmount,
           balance: this.marketStats && this.marketStats.baseBalance,
           open: {
             value: this.marketStats && this.marketStats.openBaseAmount
@@ -55,7 +56,7 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
         {this.tokenStat({
           token: this.props.tokenPair.tokenB,
           minAmount: this.props.market.minQuoteAmount,
-          initialAmount: this.props.market.initialQuoteAmount,
+          maxAmount: this.props.market.maxQuoteAmount,
           balance: this.marketStats && this.marketStats.quoteBalance,
           open: {
             value: this.marketStats && this.marketStats.openQuoteAmount
@@ -70,34 +71,32 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
     );
   }
 
-  private readonly tokenStat = ({ token, minAmount, initialAmount, balance, open }: ITokenStatsParams) => {
+  private readonly tokenStat = ({ token, minAmount, maxAmount, balance, open }: ITokenStatsParams) => {
     return (
       <div className='market-stats-token-container'>
         <div className='market-stats-token-label'>
           <span className='token-symbol'>{token.symbol}</span>
           <span className='token-name'>{token.name}</span>
         </div>
+        {maxAmount && <div className='market-stats-line-item'>
+          <span className='market-stats-amount-label'>Max Amount</span>
+          <span className='market-stats-amount'>{toUnitAmount({
+            token,
+            value: maxAmount
+          }).toFormat(4)} (~{tickerStore.getTokenUsdEquivalent(token, maxAmount)} USD)</span>
+        </div>}
         <div className='market-stats-line-item'>
-          {initialAmount && <span className='r-margin'>
-            <span className='market-stats-amount-label'>Initial Amount</span>
-            <span className='market-stats-amount'>{toUnitAmount({
-              token,
-              value: initialAmount
-            }).toFormat(4)}</span>
-          </span>}
-          <span>
-            <span className='market-stats-amount-label'>Min. Amount</span>
-            <span className='market-stats-amount'>{toUnitAmount({
-              token,
-              value: minAmount
-            }).toFormat(4)}</span>
-          </span>
+          <span className='market-stats-amount-label'>Min. Amount</span>
+          <span className='market-stats-amount'>{toUnitAmount({
+            token,
+            value: minAmount
+          }).toFormat(4)} (~{tickerStore.getTokenUsdEquivalent(token, minAmount)} USD)</span>
         </div>
 
         <div className='market-stats-line-item'>
           <span className='market-stats-amount-label'>Balance</span>
           <span className='market-stats-amount'>{balance
-            ? toUnitAmount({ token, value: balance }).toFormat(4)
+            ? <span>{toUnitAmount({ token, value: balance }).toFormat(4)} (~{tickerStore.getTokenUsdEquivalent(token, balance)} USD)</span>
             : '---'
           }</span>
         </div>
@@ -105,7 +104,7 @@ export class MarketStats extends React.Component<IMarketStatsProps> {
         {open && <div className='market-stats-line-item'>
           <span className='market-stats-amount-label'>Open</span>
           <span className='market-stats-amount'>{open.value
-            ? toUnitAmount({ token, value: open.value }).toFormat(4)
+            ? <span>{toUnitAmount({ token, value: open.value }).toFormat(4)} (~{tickerStore.getTokenUsdEquivalent(token, open.value)} USD)</span>
             : '---'
           }</span>
         </div>}

@@ -9,25 +9,16 @@ The ERC dEX Automated Market Maker (AMM) allows traders to create custom trading
     - There are [known issues](https://github.com/docker/for-mac/issues/1374) when running on some versions of Docker for Mac. External network calls may fail after the application has been running for several hours. Restarting the Docker Daemon should return service.
 - `docker-compose` requires `docker`. For most use cases, choose Docker CE edition, not Docker EE.
 - Download the latest version from [Releases](https://github.com/ERCdEX/automated-market-maker/releases) and unpack the .zip in a location of your choice
+- Alternatively, run from source by cloning the repository
 
 # Configuration
 
-Configuration consists of a few basic steps:
-- Defining environment variables
-- Starting the application
-- Import Wallet
-
-## Defining Environment Variables
-
-The application reads from a .env file at the root of the project or environment variables can set at the system level. A sample .env file is provided [here](./.env-EXAMPLE). There are two required variables:
-
-- ETHEREUM_CHAIN: this can be either 'kovan' (testnet) or 'foundation' (mainnet)
-- AQUEDUCT_API_KEY_ID: This is your public API key ID for Aqueduct. Visit [here](https://github.com/ERCdEX/aqueduct/tree/master/guides#general-guidelines) for information on how to sign up for an API key.
-
 ## Starting the application
 
-- Run `docker-compose up --build` (probably `sudo docker-compose up --build` on Linux) from the root directory. This is creating the environment from source, so it will probably take several minutes.
-- Once the environment bootstrapping process is complete, visit http://127.0.01:8663 to view the dashboard
+- Start process
+  - mainnet: `sh run-mainnet.sh` or `sudo sh run-mainnet.sh`
+  - kovan (testnet): `sh run-kovan.sh` or `sudo sh run-kovan.sh`
+- Once the environment bootstrapping process is complete, visit http://localhost:8663 to view the dashboard
 
 ## Importing Ethereum Wallet
 
