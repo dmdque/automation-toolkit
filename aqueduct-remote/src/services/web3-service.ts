@@ -62,7 +62,8 @@ export class Web3Service {
       const health = await this.executeRpcCommand<IParityHealth>('parity_nodeHealth');
       if (health.result.peers.status !== 'ok'
         // we're going to say this is okay
-        && health.result.peers.message !== 'You are connected to only one peer. Your node might not be reliable. Check your network connection.') {
+        // && health.result.peers.message !== 'You are connected to only one peer. Your node might not be reliable. Check your network connection.'
+      ) {
         return {
           error: health.result.peers.message
         };

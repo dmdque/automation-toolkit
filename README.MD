@@ -10,6 +10,9 @@ The ERC dEX Automated Market Maker (AMM) allows traders to create custom trading
 - `docker-compose` requires `docker`. For most use cases, choose Docker CE edition, not Docker EE.
 - Download the latest version from [Releases](https://github.com/ERCdEX/automated-market-maker/releases) and unpack the .zip in a location of your choice
 - Alternatively, run from source by cloning the repository
+- Hardware
+    - You will want to run this application on a SSD (Solid State Drive). The underlying ethereum node may be slow on a mechanical drive.
+    - Allow significant disk space (current recommendation: 50 GB)
 
 # Configuration
 
