@@ -11,6 +11,7 @@ import { marketStore } from 'stores/market-store';
 import { tokenPairStore } from 'stores/token-pair-store';
 import { BalanceHistory } from './balance-history';
 import { Bands } from './bands/bands';
+import { EditMarket } from './edit-market';
 import { EnterPassphraseModal } from './enter-passphrase-modal';
 import { MarketLogViewer } from './log-viewer/market-log-viewer';
 import { MarketStats } from './market-stats';
@@ -38,6 +39,7 @@ export class MarketView extends React.Component<IMarketViewProps> {
   @observable private isViewingReports = false;
   @observable private confirmStart = false;
   @observable private confirmDeleteProps?: IConfirmModalProps;
+  @observable private isEditing = false;
 
   constructor(public readonly props: IMarketViewProps) {
     super(props);
@@ -97,6 +99,9 @@ export class MarketView extends React.Component<IMarketViewProps> {
             </a>
           </div>
           <div className='fl'>
+            <div className='fl vc'>
+              <i className='fa fa-cog edit-market-icon' onClick={this.onClickEditMarket} />
+            </div>
             <div className={`fl vc ${this.isStarted ? 'inactive' : 'active'}`} onClick={this.onDelete(this.market)}
               title={this.isStarted ? 'Market is currently running - stop first to delete' : undefined}>
               <div className='oval delete-market'>
@@ -116,9 +121,13 @@ export class MarketView extends React.Component<IMarketViewProps> {
         {this.confirmDeleteProps && <ConfirmModal {...this.confirmDeleteProps}>
           Are you sure you want to remove this market? This action is irriversible.
           </ConfirmModal>}
+        {this.isEditing && <EditMarket onClose={this.onCloseEditMarket} market={this.market} onSuccess={this.onSuccess} />}
       </div>
     );
   }
+
+  private readonly onCloseEditMarket = () => this.isEditing = false;
+  private readonly onClickEditMarket = () => this.isEditing = true;
 
   private async loadMarket() {
     this.market = marketStore.markets.find(m => m._id === this.props.match.params.id);
@@ -218,4 +227,8 @@ export class MarketView extends React.Component<IMarketViewProps> {
   private readonly onCloseEnterPassphrase = () => this.confirmStart = false;
   private readonly onCloseReports = () => this.isViewingReports = false;
   private onStart = () => this.confirmStart = true;
+
+  private readonly onSuccess = () => {
+    this.refresh();
+  }
 }

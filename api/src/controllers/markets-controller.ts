@@ -1,8 +1,8 @@
-import { Body, Delete, Get, Post, Route, Tags } from 'tsoa';
+import { Body, Delete, Get, Patch, Post, Route, Tags } from 'tsoa';
 import { config } from '../config';
 import { IMarket, IStoredMarket, marketRepository } from '../db/market-repository';
 import { IMarketStatsHistory } from '../db/market-stats-history-repository';
-import { IMarketStats, IStartMarketRequest, IStopMarketRequest, IValidateStopResult, MarketService } from '../services/market-service';
+import { IMarketStats, ISetCancellationModeRequest, IStartMarketRequest, IStopMarketRequest, IValidateStopResult, MarketService } from '../services/market-service';
 
 @Route('markets')
 export class MarketsController {
@@ -18,6 +18,12 @@ export class MarketsController {
   @Tags('Markets')
   public async deleteMarket(marketId: string) {
     await this.marketService.deleteMarket(marketId);
+  }
+
+  @Patch('set-cancellation-mode')
+  @Tags('Markets')
+  public async setCancellationMode(@Body() request: ISetCancellationModeRequest) {
+    await this.marketService.setCancellationMode(request);
   }
 
   @Post()

@@ -38,6 +38,11 @@ export interface IMarketStats {
   openQuoteAmount: string;
 }
 
+export interface ISetCancellationModeRequest {
+  marketId: string;
+  cancellationMode: 'hard' | 'soft';
+}
+
 export class MarketService {
   private readonly logService = new LogService();
   private readonly bandService = new BandService();
@@ -234,6 +239,16 @@ export class MarketService {
         key: 'dateCreated'
       }
     });
+  }
+
+  public async setCancellationMode(request: ISetCancellationModeRequest) {
+    const market = await marketRepository.findOne({ _id: request.marketId });
+    if (!market) {
+      throw new ServerError('not found', 404);
+    }
+
+    market.cancellationMode = request.cancellationMode;
+    await marketRepository.update({ _id: request.marketId}, market);
   }
 
   private async cancelMarketOrders(marketId: string) {

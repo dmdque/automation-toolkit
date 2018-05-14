@@ -16,7 +16,7 @@ export class ConfirmModal extends React.Component<IConfirmModalProps> {
         <form onSubmit={this.onSubmit} className='form'>
           {this.props.children}
           <div>
-            <button type='submit' className='button primary fw'>
+            <button type='submit' className='button primary fw t-padding'>
               {this.props.submitText}
             </button>
           </div>

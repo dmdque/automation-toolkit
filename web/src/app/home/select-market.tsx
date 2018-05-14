@@ -31,8 +31,8 @@ export class SelectMarket extends React.Component<ISelectMarketProps> {
       <div className='select-market fl co'>
         <div className='header fl sb vc'>
           Markets
-          <div className='oval add-icon'>
-            <img src='/images/add.svg' alt='Create New Market' title='Create New Market' onClick={this.onClickCreate} />
+          <div className='oval add-icon' onClick={this.onClickCreate}>
+            <img src='/images/add.svg' alt='Create New Market' title='Create New Market' />
           </div>
         </div>
         <div className='market-list grow'>

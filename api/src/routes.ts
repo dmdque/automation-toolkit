@@ -66,8 +66,15 @@ const models: TsoaRoute.Models = {
             "maxQuoteAmount": { "dataType": "string", "required": true },
             "minQuoteAmount": { "dataType": "string", "required": true },
             "minEthAmount": { "dataType": "string", "required": true },
+            "cancellationMode": { "dataType": "enum", "enums": ["hard", "soft"], "required": true },
             "active": { "dataType": "boolean" },
             "_id": { "dataType": "string", "required": true },
+        },
+    },
+    "ISetCancellationModeRequest": {
+        "properties": {
+            "marketId": { "dataType": "string", "required": true },
+            "cancellationMode": { "dataType": "enum", "enums": ["hard", "soft"], "required": true },
         },
     },
     "IMarket": {
@@ -80,6 +87,7 @@ const models: TsoaRoute.Models = {
             "maxQuoteAmount": { "dataType": "string", "required": true },
             "minQuoteAmount": { "dataType": "string", "required": true },
             "minEthAmount": { "dataType": "string", "required": true },
+            "cancellationMode": { "dataType": "enum", "enums": ["hard", "soft"], "required": true },
             "active": { "dataType": "boolean" },
         },
     },
@@ -384,6 +392,25 @@ export function RegisterRoutes(app: any) {
 
 
             const promise = controller.deleteMarket.apply(controller, validatedArgs);
+            promiseHandler(controller, promise, response, next);
+        });
+    app.patch('/api/markets/set-cancellation-mode',
+        function(request: any, response: any, next: any) {
+            const args = {
+                request: { "in": "body", "name": "request", "required": true, "ref": "ISetCancellationModeRequest" },
+            };
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request);
+            } catch (err) {
+                return next(err);
+            }
+
+            const controller = new MarketsController();
+
+
+            const promise = controller.setCancellationMode.apply(controller, validatedArgs);
             promiseHandler(controller, promise, response, next);
         });
     app.post('/api/markets',

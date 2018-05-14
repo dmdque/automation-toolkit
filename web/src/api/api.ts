@@ -65,8 +65,14 @@ export namespace Dashboard {
       maxQuoteAmount: string;
       minQuoteAmount: string;
       minEthAmount: string;
+      cancellationMode: string;
       active?: boolean;
       _id: string;
+    }
+
+    export interface ISetCancellationModeRequest {
+      marketId: string;
+      cancellationMode: string;
     }
 
     export interface IMarket {
@@ -78,6 +84,7 @@ export namespace Dashboard {
       maxQuoteAmount: string;
       minQuoteAmount: string;
       minEthAmount: string;
+      cancellationMode: string;
       active?: boolean;
     }
 
@@ -187,6 +194,10 @@ export namespace Dashboard {
 
     export interface IMarketsDeleteMarketParams {
       marketId: string;
+    }
+
+    export interface IMarketsSetCancellationModeParams {
+      request: ISetCancellationModeRequest;
     }
 
     export interface IMarketsStartMarketParams {
@@ -333,6 +344,16 @@ export namespace Dashboard {
           method: 'DELETE',
           url: `${baseApiUrl}/api/markets/${params.marketId}`
         };
+        return this.executeRequest<void>(requestParams);
+      }
+
+      public async setCancellationMode(params: IMarketsSetCancellationModeParams) {
+        const requestParams: IRequestParams = {
+          method: 'PATCH',
+          url: `${baseApiUrl}/api/markets/set-cancellation-mode`
+        };
+
+        requestParams.body = params.request;
         return this.executeRequest<void>(requestParams);
       }
 

@@ -21,6 +21,7 @@ export const marketFixture = fixture<IMarketFixtureParams, IStoredMarket>(async 
     minBaseAmount: m.minBaseAmount,
     minEthAmount: m.minEthAmount,
     minQuoteAmount: m.minQuoteAmount,
-    active: true
+    active: true,
+    cancellationMode: 'hard'
   });
 });

@@ -81,7 +81,11 @@ export class MarketWatcher {
       for (let order of orders) {
         const validatedOrder = await this.orderService.getValidatedOrder(order);
         if (validatedOrder) {
-          await this.orderService.cancelOrder(validatedOrder);
+          if (market.cancellationMode === 'soft') {
+            await this.orderService.softCancelOrder(validatedOrder);
+          } else {
+            await this.orderService.cancelOrder(validatedOrder);
+          }
         }
       }
 
@@ -103,7 +107,11 @@ export class MarketWatcher {
       for (let sellOrder of sellOrders) {
         const validatedOrder = await this.orderService.getValidatedOrder(sellOrder);
         if (validatedOrder) {
-          await this.orderService.cancelOrder(validatedOrder);
+          if (market.cancellationMode === 'soft') {
+            await this.orderService.softCancelOrder(validatedOrder);
+          } else {
+            await this.orderService.cancelOrder(validatedOrder);
+          }
         }
       }
     }
@@ -123,7 +131,11 @@ export class MarketWatcher {
       for (let buyOrder of buyOrders) {
         const validatedOrder = await this.orderService.getValidatedOrder(buyOrder);
         if (validatedOrder) {
-          await this.orderService.cancelOrder(validatedOrder);
+          if (market.cancellationMode === 'soft') {
+            await this.orderService.softCancelOrder(validatedOrder);
+          } else {
+            await this.orderService.cancelOrder(validatedOrder);
+          }
         }
       }
     }

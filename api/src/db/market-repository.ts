@@ -25,6 +25,7 @@ export interface IMarket {
   maxQuoteAmount: string;
   minQuoteAmount: string;
   minEthAmount: string;
+  cancellationMode: 'hard' | 'soft';
   active?: boolean;
 }
 

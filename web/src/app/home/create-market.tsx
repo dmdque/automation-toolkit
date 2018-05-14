@@ -34,6 +34,7 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
   @observable private quoteReserve?: ITokenReserveParams;
   @observable private balances?: IBalances;
   @observable private minEthBalance = '';
+  @observable private cancellationMode: 'hard' | 'soft' = 'hard';
 
   constructor(public readonly props: ICreateMarketProps) {
     super(props);
@@ -76,7 +77,20 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
             </div>
             <TextInput type='text' placeholder='Minimum Ether Balance'
               onChange={this.onMinEthBalanceChange} value={this.minEthBalance} required={true} errorMessage={minEthBalanceError.error}
-              infoMessage={minEthBalanceError.value && <span>~{tickerStore.getTokenUsdEquivalent({ decimals: 18, symbol: 'WETH'}, minEthBalanceError.value)} USD</span>} />
+              infoMessage={minEthBalanceError.value && <span>~{tickerStore.getTokenUsdEquivalent({ decimals: 18, symbol: 'WETH' }, minEthBalanceError.value)} USD</span>} />
+            <div>
+              <label>Cancelation Mode</label>
+              <div>
+                <label>
+                  <input type='radio' value='hard' checked={this.cancellationMode === 'hard'} onClick={this.handleModeSelect('hard')} />
+                  <span>Hard Cancellation (costs gas, removed from blockchain)</span>
+                </label>
+                <label>
+                  <input type='radio' value='soft' checked={this.cancellationMode === 'soft'} onClick={this.handleModeSelect('soft')} />
+                  <span>Soft Cancellation (no gas costs, removes from ERC dEX UI)</span>
+                </label>
+              </div>
+            </div>
           </div>}
           <div>
             <button className='button primary fw' type='submit' disabled={!this.isValid()}>Submit</button>
@@ -85,6 +99,8 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
       </Modal>
     );
   }
+
+  private readonly handleModeSelect = (mode: 'hard' | 'soft') => () => this.cancellationMode = mode;
 
   private onTokenPairChange: React.ChangeEventHandler<HTMLSelectElement> = event => {
     const index = parseInt(event.target.value, 10);
@@ -124,7 +140,8 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
           maxBaseAmount: baseRes.max,
           minQuoteAmount: quoteRes.min,
           maxQuoteAmount: quoteRes.max,
-          minEthAmount: minEthAmount.toString()
+          minEthAmount: minEthAmount.toString(),
+          cancellationMode: this.cancellationMode
         }
       });
       this.props.onSuccess(market);
