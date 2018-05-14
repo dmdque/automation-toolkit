@@ -267,7 +267,7 @@ export class BandService {
 
           // couldn't find a band to put it into
           if (!movedOrder) {
-            if (status === 'loss-risk') {
+            if (status === 'loss-risk' && market.cancellationMode === 'hard') {
               try {
                 await this.orderService.cancelOrder(order);
                 await this.logService.addBandLog({
