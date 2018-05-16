@@ -59,6 +59,7 @@ With this in mind, the toolkit is designed to optimize for **keeping gas costs a
 - **Bands**, when created, require a specification for spread (in BPS) and tolerance (in BPS). The spread specifies the spread from the current market midpoint price, while the tolerance specifies how far from that price the market can move before the order is considered "out of band". Example: The price is 100. A buy band at 100 BPS puts the order price at 99, and a tolerance of 20 BPS allows price action that would put an order price between 98.8 and 99.2. 10 BPS would allow an order price between 98.9 and 99.1. By include this concept of tolerance, bands can be given some 'wiggle room' to account for price action
 - Multiple bands can be created on both buy and sell side. By giving each of these bands tolerance such that bands "overlap" (100 bps with 10 bps tolerance = 98.9 - 99.1, 120 bps with 10 bps tolerance = 98.7-98.9), orders can move freely between bands rather than being canceled and recreated
 - The core engine creates logs to monitor gas usage which can be analyzed programatically or via the UI Dashboard
+- **Soft Cancellation Mode** allows market making to occur with no gas costs; canceled orders, while not canceled on the blockchain, will be removed from the ERC dEX platform
 
 ## Programmatic Band Management
 
