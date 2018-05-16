@@ -1,6 +1,6 @@
 # Overview
 
-The ERC dEX Automated Market Maker (AMM) allows traders to create custom trading strategies that will be executed autonomously. Using the dashboard (or a scripting language of your choice, described below), the user creates **Markets** (e.g. ZRX/WETH), then adds **Bands** to that market that specify desired price spreads. When a **Market** is active, **Bands** will deploy and cancel ERC dEX **Orders** in accordance with the user defined strategy.
+The ERC dEX Automation Toolkit allows traders to create custom trading strategies that will be executed autonomously. Using the dashboard (or a scripting language of your choice, described below), the user creates **Markets** (e.g. ZRX/WETH), then adds **Bands** to that market that specify desired price spreads. When a **Market** is active, **Bands** will deploy and cancel ERC dEX **Orders** in accordance with the user defined strategy.
 
 # Installation
 
@@ -39,13 +39,13 @@ An **Order** represents a signed and deployed ERC dEX order. **Orders** can move
 
 # Architecture and Design Considerations
 
-Automated trading for decentralized platforms presents unique challenges not seen in traditional, centralized changes. Trading tools for decentralized applications have to be designed in a way that acknowledges these challenges and optimizes around them. Below, we'll describe some of the challenges of decentralized platforms and how we handle those issues with AMM.
+Automated trading for decentralized platforms presents unique challenges not seen in traditional, centralized changes. Trading tools for decentralized applications have to be designed in a way that acknowledges these challenges and optimizes around them. Below, we'll describe some of the challenges of decentralized platforms and how we handle those issues with the toolkit.
 
 ## Signing Requirements
 
 Unlike centralized exchanges, which expose simple, centralized endpoints for order creation and cancelation, decentralized exchanges depend on off-chain signing and sending transactions to the Ethereum blockchain as the primary way to authorize actions. As a result, any decentralized trading system requires a local wallet implementation that supports signing.
 
-AMM includes a bundled, pre-configured version of [Parity](https://www.parity.io/), a robust, fully featured Ethereum client which supports signing. AMM requires that a wallet be unlocked, enabling 'headless' operation.
+The toolkit includes a bundled, pre-configured version of [Parity](https://www.parity.io/), a robust, fully featured Ethereum client which supports signing. The toolkit requires that a wallet be unlocked, enabling 'headless' operation.
 
 ## Cancelation Gas Costs
 
@@ -53,9 +53,9 @@ ERC dEX is built using the [0x Protocol](https://www.0xproject.com/), a protocol
 
 While **creation of Orders is free of gas costs**, order cancelations *do* have to be submitted to the blockchain, incurring gas costs. Since most market making strategies involve cancelation of up to 90% of all orders (or in some cases, more), gas costs can be prohibitively expensive if not accounted for.
 
-With this in mind, AMM is designed to optimize for **keeping gas costs as low as possible**. With a few guidelines, we've found that cancelation gas costs are usually negligible:
+With this in mind, the toolkit is designed to optimize for **keeping gas costs as low as possible**. With a few guidelines, we've found that cancelation gas costs are usually negligible:
 
-- Short duration orders mean that most orders will expire naturally before needing to be canceled; AMM requires order expiration to be set at least 5 minutes, but no longer that 20 minutes. Expired orders are automatically recreated at the updated price.
+- Short duration orders mean that most orders will expire naturally before needing to be canceled; the toolkit requires order expiration to be set at least 5 minutes, but no longer that 20 minutes. Expired orders are automatically recreated at the updated price.
 - **Bands**, when created, require a specification for spread (in BPS) and tolerance (in BPS). The spread specifies the spread from the current market midpoint price, while the tolerance specifies how far from that price the market can move before the order is considered "out of band". Example: The price is 100. A buy band at 100 BPS puts the order price at 99, and a tolerance of 20 BPS allows price action that would put an order price between 98.8 and 99.2. 10 BPS would allow an order price between 98.9 and 99.1. By include this concept of tolerance, bands can be given some 'wiggle room' to account for price action
 - Multiple bands can be created on both buy and sell side. By giving each of these bands tolerance such that bands "overlap" (100 bps with 10 bps tolerance = 98.9 - 99.1, 120 bps with 10 bps tolerance = 98.7-98.9), orders can move freely between bands rather than being canceled and recreated
 - The core engine creates logs to monitor gas usage which can be analyzed programatically or via the UI Dashboard
@@ -64,7 +64,7 @@ With this in mind, AMM is designed to optimize for **keeping gas costs as low as
 
 While the UI Dashboard is a novel and useful way of manually managing bands, it requires a person to man the dashboard and make adjustments based on price action or other feedback mechanisms. This aligns with some but not all trading strategies.
 
-AMM supports programmatic band management via a local REST API which can be used with the included [JS client](./web/src/api/api.ts) or by calling the API from a client of your choice. Users may then manage bands via some custom/external source of feedback. This allows automated trading in a trustless, non-custodial context while abstract away the complexities of blockchain interaction.
+The toolkit supports programmatic band management via a local REST API which can be used with the included [JS client](./web/src/api/api.ts) or by calling the API from a client of your choice. Users may then manage bands via some custom/external source of feedback. This allows automated trading in a trustless, non-custodial context while abstract away the complexities of blockchain interaction.
 
 # Usage
 
