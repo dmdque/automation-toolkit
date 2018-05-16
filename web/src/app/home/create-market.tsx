@@ -78,7 +78,7 @@ export class CreateMarket extends React.Component<ICreateMarketProps> {
             <TextInput type='text' placeholder='Minimum Ether Balance'
               onChange={this.onMinEthBalanceChange} value={this.minEthBalance} required={true} errorMessage={minEthBalanceError.error}
               infoMessage={minEthBalanceError.value && <span>~{tickerStore.getTokenUsdEquivalent({ decimals: 18, symbol: 'WETH' }, minEthBalanceError.value)} USD</span>} />
-            <div>
+            <div className='b-padding'>
               <label>Cancelation Mode</label>
               <div>
                 <label>

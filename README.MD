@@ -98,12 +98,8 @@ By default, a market will have no bands; the first step in actually deploying a 
 
 ### Starting/Stopping
 
-By default, a market is in the "stopped" state, meaning that orders are not being deployed. To begin order deployment and automated position maintenance, click the "Start" button. Verify that the orders have been created by viewing the market in ERC dEX or by viewing band logs:
+By default, a market is in the "stopped" state, meaning that orders are not being deployed. To begin order deployment and automated position maintenance, click the "Start" button. Verify that the orders have been created by viewing the market in ERC dEX or by viewing band logs.
 
-![Start Market](./docs/screenshots/start-market.gif)
-
-To stop a market, click the "Stop Market" button. If there are deployed orders, the user should decide whether to cancel them immediately or to allow them to expire.
-
-![Stop Market](./docs/screenshots/stop-market.gif)
+To stop a market, click the "Stop Market" button. If there are deployed orders, the user should decide whether to cancel them immediately or to soft cancel them (remove from orderbook).
 
 Markets can be deleted with the "Delete" button; the Market must be stopped before deletion is possible.
