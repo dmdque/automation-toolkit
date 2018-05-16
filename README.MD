@@ -8,11 +8,13 @@ The ERC dEX Automation Toolkit allows traders to create custom trading strategie
 - The application uses `docker-compose` to run all services (local web dashboard, APIs, and a local Parity Ethereum node). Docker-compose can be installed on any MacOS, Windows, or Linux machine. Follow the instructions at https://docs.docker.com/compose/install to install docker-compose on your platform.
     - There are [known issues](https://github.com/docker/for-mac/issues/1374) when running on some versions of Docker for Mac. External network calls may fail after the application has been running for several hours. Restarting the Docker Daemon should return service.
 - `docker-compose` requires `docker`. For most use cases, choose Docker CE edition, not Docker EE.
-- Download the latest version from [Releases](https://github.com/ERCdEX/automated-market-maker/releases) and unpack the .zip in a location of your choice
-- Alternatively, run from source by cloning the repository
 - Hardware
     - You will want to run this application on a SSD (Solid State Drive). The underlying ethereum node may be slow on a mechanical drive.
     - Allow significant disk space (current recommendation: 50 GB)
+
+## Download
+- Download the latest version from [Releases](https://github.com/ERCdEX/automation-toolkit/releases) and unpack the .zip in a location of your choice
+- Alternatively, run from source by cloning the repository
 
 # Configuration
 
